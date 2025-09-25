@@ -1,0 +1,28 @@
+body {
+  text-align: center;
+}
+/* this centered the text*/
+nav {
+  background-color: steelblue;
+  padding: 10px;
+}
+/* this out the blue box around the navigation on top, with a 10px buffer */
+a {
+  color: white;
+  margin: 40px;
+}
+/* this spaced out the nav points and gave them a font color */
+h1 {
+  color: steelblue;
+}
+img {
+  width: 200px;
+  border: 4px solid steelblue;
+}
+p {
+  padding: 10px;
+}
+footer {
+  background-color: steelblue;
+  color: white;
+}
