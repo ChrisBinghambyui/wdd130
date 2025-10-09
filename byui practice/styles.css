@@ -6,3 +6,17 @@
     background-color: white;
     color: steelblue;
 }
+img {
+    width: 30%;
+}
+p {
+    width: 80%;
+}
+a {
+    font-size: 1.5em;
+}
+nav, footer {
+    background-color: steelblue;
+    color: white;
+    padding: 10px;
+}
