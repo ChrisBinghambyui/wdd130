@@ -1,11 +1,10 @@
 body {
-  max-width: 300px;
   margin: 0 auto;
   padding: 4em;
   font-size: 18px;
-  text-align: center;
-  background-color: rgb(92, 161, 215);
-  color: white;
+  text-align: right;
+  color: black;
+  background-image: url(images/title.jpg);
 }
 
 img {
@@ -14,22 +13,3 @@ img {
   max-width: 200px;
 }
 
-h3 {
-    max-width: 245px;
-    margin: 0 auto;
-    padding: 2em;
-}
-
-.list {
-    text-align: left;
-    color: black;
-}
-
-.quote {
-    font-size: 14px;
-}
-
-.fquote {
-    font-size: 12px;
-    color: black;
-}
