@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Roboto+Slab:wght@100..900&display=swap');
 
+/*classes have a ., IDs have a # */
 
 :root{
     --heading-font: "DM Serif Text";
