@@ -257,19 +257,42 @@
 
   // enemies
   const coin = new Creature("Cloaked Man", 0, 0, 0);
+
+// name, hp, atk, def, xp
+
   const pdummy = new Creature("Practice Dummy", 10, 0, d4(), 15);
+  
   const crat = new Creature("Cave Rat", 3, d4()-1, 0, 2);
   const wbat = new Creature("Weary Bat", 2, d4()-1, 1, 2);
   const rock = new Creature("Spooky Rock", 10, 0, 0, 2);
+
   const vrat = new Creature("Crazed Rats", 4, d8()-2, 0, 3);
-  const mutt = new Creature("Mangy Dog", 6, d8()-1, 0, 3);
+  const mutt = new Creature("Mangy Dog", 6, d6()-1, 0, 3);
+  const ybel = new Creature("Young Beltleech, d4()+d4(), 3, 0, 3");
+
   const magg = new Creature("Maggot Swarm", 10, 0, -1, 5, "current_health");
+  const ygos = new Creature("Frail Ghost", 3, d6()-1, 0, 5);
+  const ycag = new Creature("Young Caghouse", 6, d8(), 2, 5);
+
+  const dell = new Creature("Dellinid Prowler", 10, d6()+d6(), 2, 7);
+  const skel = new Creature("Skeletal Guard", 8, d8()+2, 2, 7);
+  const nauk = new Creature("Naukin Scout", 8, d4()+d4()+d4(), 1, 7);
+
+  const tent = new Creature("Fleshy Protrusion", 15, d8()+d4(), 2, 10);
+  const wyrm = new Creature("Hammerhead Tunneler", 12, d10()+2, 4, 10);
+  const myrm = new Creature("Myrrim Rotguard", 10, d12()+1, 3, 10);
+
+  const pred = new Creature("Predator Wyrm", 20, d8()+d8()+d8(), 2, 15);
+  const skit = new Creature("Skittran Scouts", 12, 0, 5, 15, "current_health");
 
   const tier0 = [coin];
   const tier1 = [pdummy];
   const tier2 = [crat, wbat, rock];
-  const tier3 = [vrat, mutt, magg];
-  const tier4 = [magg];
+  const tier3 = [vrat, mutt, ybel];
+  const tier4 = [magg, ygos, ycag];
+  const tier5 = [dell, skel, nauk];
+  const tier6 = [tent. wyrm, myrm];
+  const tier7 = [pred, skit];
 
   // helper to update top right stats
   function updateStats(){
@@ -437,6 +460,7 @@
         } else {
           print("Your enemy takes a swing...");
           let edam = opp.getStrength();
+          if(opp.name === "Young Beltleech") edam = round;
           if(edam < 0) edam = 0;
           print(`You take ${edam} damage!`);
           currenthp -= edam;
