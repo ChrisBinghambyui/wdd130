@@ -1,600 +1,651 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Flintlock Dungeon</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    <style>
-        body {
-            font-family: monospace;
-            background-color: #1a1a1a;
-            color: #00ff00;
-            padding: 20px;
-        }
-        py-script {
-        display: none;
-        }
-    
-    /* Style the terminal output */
-        py-terminal {
-            display: block;
-            background-color: #0d0d0d;
-            border: 2px solid #00ff00;
-            padding: 20px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            min-height: 400px;
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Flintlock Dungeon — Browser Terminal</title>
+<style>
+  :root{
+    --bg:#0d0d0d;
+    --panel:#0b0b0b;
+    --green:#00ff66;
+    --muted:#007a3a;
+    --accent:#39ff9a;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#050505 0%, #0f0f0f 100%);}
+  body{
+    font-family: "Courier New", monospace;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    color:var(--green);
+  }
+
+  .terminal {
+    width:min(1000px, 94vw);
+    max-width:1000px;
+    height:75vh;
+    min-height:540px;
+    background: radial-gradient(ellipse at 20% 10%, rgba(0,255,102,0.02), transparent 30%),
+                linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.2));
+    border: 2px solid rgba(0,255,102,0.08);
+    box-shadow: 0 10px 60px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.02);
+    padding:18px;
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .term-header{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .led { width:12px;height:12px;border-radius:50%; background:#ff5f56; box-shadow:0 0 12px rgba(255,95,86,0.2); }
+  .led.yellow { background:#ffbd2e; box-shadow:0 0 12px rgba(255,189,46,0.1); }
+  .led.green { background:#27c93f; box-shadow:0 0 12px rgba(39,201,63,0.12); }
+  .title { font-weight:bold; margin-left:6px; color:var(--accent); }
+
+  .screen {
+    flex:1;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.2));
+    border-radius:6px;
+    padding:14px;
+    color:var(--green);
+    overflow:auto;
+    box-shadow: inset 0 0 30px rgba(0,255,102,0.01);
+    border: 1px solid rgba(0,255,102,0.03);
+    line-height:1.35;
+    font-size:14px;
+  }
+
+  .screen .line { white-space:pre-wrap; word-wrap:break-word; margin-bottom:6px; }
+
+  .input-row {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .prompt {
+    min-width:84px;
+    text-align:right;
+    color:var(--muted);
+    font-size:13px;
+    user-select:none;
+  }
+
+  .cmd-input {
+    flex:1;
+    background:transparent;
+    border:1px solid rgba(0,255,102,0.07);
+    color:var(--green);
+    padding:10px 12px;
+    border-radius:6px;
+    outline:none;
+    font-family:inherit;
+    font-size:14px;
+  }
+
+  .btn {
+    background:linear-gradient(180deg, rgba(0,255,102,0.06), rgba(0,255,102,0.02));
+    border:1px solid rgba(0,255,102,0.06);
+    color:var(--green);
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13px;
+  }
+  .btn:active{ transform:translateY(1px); }
+
+  .muted { color: #4f9f6e; font-size:13px; }
+
+  .status {
+    display:flex;
+    gap:10px;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  /* small nice touches */
+  .green-highlight{ color:var(--accent); font-weight:700; }
+  ::-webkit-scrollbar{ height:10px; width:10px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(0,255,102,0.06); border-radius:8px; }
+  .blinker { display:inline-block; width:8px; background:var(--green); margin-left:6px; animation:blink 1s steps(1) infinite; height:14px; vertical-align:middle; }
+  @keyframes blink { 50%{opacity:0} }
+</style>
 </head>
 <body>
-    <h1>Flintlock Dungeon</h1>
-    <py-script>
-#removed while true and changed welcome choice, added debugger
-import random
+  <div class="terminal" role="application" aria-label="Flintlock Dungeon terminal">
+    <div class="term-header">
+      <div class="led"></div><div class="led yellow"></div><div class="led green"></div>
+      <div class="title">Flintlock Dungeon</div>
+      <div style="flex:1"></div>
+      <div class="status"> <span id="stat-level" class="muted">Level: 0</span> <span id="stat-hp" class="muted">HP: 10/20</span> <span id="stat-floor" class="muted">Floor: 0</span></div>
+    </div>
 
-def d4():
-    return random.randint(1, 4)
+    <div id="screen" class="screen" tabindex="0" aria-live="polite"></div>
 
-def d6():
-    return random.randint(1, 6)
+    <div class="input-row">
+      <div class="prompt">INPUT:</div>
+      <input id="cmd" class="cmd-input" autocomplete="off" />
+      <button id="send" class="btn">Enter</button>
+    </div>
+  </div>
 
-def d8():
-    return random.randint(1, 8)
+<script>
+/*
+  Flintlock Dungeon — browser terminal UI
+  Converted from original PyScript game into event-driven JS.
+  Works locally: save as HTML and open in Chrome.
+*/
 
-def d10():
-    return random.randint(1, 10)
+(function(){
+  // Utilities
+  const screen = document.getElementById('screen');
+  const input = document.getElementById('cmd');
+  const send = document.getElementById('send');
+  const statLevel = document.getElementById('stat-level');
+  const statHP = document.getElementById('stat-hp');
+  const statFloor = document.getElementById('stat-floor');
 
-def d12():
-    return random.randint(1, 12)
+  function print(text="", cssClass="line"){
+    const el = document.createElement('div');
+    el.className = cssClass;
+    el.textContent = text;
+    screen.appendChild(el);
+    screen.scrollTop = screen.scrollHeight;
+  }
 
-def d100():
-    return random.randint(1,100)
+  function printRich(text, html=false){
+    const el = document.createElement('div');
+    el.className = "line";
+    if(html) el.innerHTML = text; else el.textContent = text;
+    screen.appendChild(el);
+    screen.scrollTop = screen.scrollHeight;
+  }
 
-# Helper function for validated integer input
-def get_valid_input(prompt, valid_options):
-    """Get input from user and validate it's in valid_options list"""
-    valid = False
-    choice = None
-    
-    while not valid:
-        try:
-            choice = int(input(prompt))
-            if choice in valid_options:
-                valid = True
-            else:
-                print(f"Invalid choice. Please enter one of: {valid_options}")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-    
-    return choice
+  function dice(n){ return Math.floor(Math.random()*n) + 1; }
+  function d4(){ return dice(4); }
+  function d6(){ return dice(6); }
+  function d8(){ return dice(8); }
+  function d10(){ return dice(10); }
+  function d12(){ return dice(12); }
+  function d100(){ return dice(100); }
 
-name = input("What is your character's name? ")
-print(f"Welcome to Flintlock Dungeon, {name}!")
+  // Promise-based input prompt (validOptions optional)
+  let inputResolve = null;
+  function getInput(promptText="", validOptions=null){
+    printRich("> " + promptText);
+    input.value = "";
+    input.focus();
+    return new Promise((resolve) => {
+      inputResolve = ({resolve, validOptions});
+    });
+  }
 
-debug_mode = False
-if name == "devcom":
-    debug_mode = True
-    print("*** DEBUG MODE ACTIVATED ***")
-     
-weapon = [1, 2, 3, 4, 5, 6]
-hp = 20
-currenthp = 10
-lvl = 0
-floor = 0
-desc = 0
-xp = 0
-upg = 0
-cdef = 1
-heal = [0, 1, 2, 3]
-critchance = [1, 2, 3, 4, 5]
+  // Handler for Enter key
+  function handleInputSubmit(){
+    if(!inputResolve) return;
+    const raw = input.value.trim();
+    if(raw === "") return;
+    printRich(raw, false);
+    const { resolve, validOptions } = inputResolve;
+    inputResolve = null;
+    // If validOptions specified, validate
+    if(validOptions){
+      const num = Number(raw);
+      if(!Number.isFinite(num) || !validOptions.includes(num)){
+        print("Invalid choice. Expected: " + JSON.stringify(validOptions));
+        // re-prompt: resolve with null so caller can re-prompt
+        resolve({ok:false, raw});
+        return;
+      }
+      resolve({ok:true, value:num});
+    } else {
+      resolve({ok:true, value:raw});
+    }
+  }
 
-double = 0
-rapid = 0
-crit = 0
-shield = 0
-totem = 0
-idol = 0
-potion = 0
+  // wire input events
+  send.addEventListener('click', handleInputSubmit);
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') { e.preventDefault(); handleInputSubmit(); }
+  });
 
-potion_usage = 0
-totem_usage = 0
-idol_usage = 0
-victories = 0
+  // Data structures (mirrors original)
+  class Creature {
+    constructor(name, health, strength, defense, xp_value=0, strength_type="fixed", max_health=null){
+      this.name = name;
+      this.health = health;
+      this.base_strength = strength;
+      this.defense = defense;
+      this.xp_value = xp_value;
+      this.strength_type = strength_type;
+      this.max_health = max_health !== null ? max_health : health;
+    }
+    getStrength(){
+      if(this.strength_type === "current_health") return this.health;
+      return this.base_strength;
+    }
+  }
 
-rng = [0, 1, 2, 3]
-rng2 = [0, 1, 2, 3, 4, 5, 6]
-rng3 = [0, 1, 2]
-rng4 = [0, 1]
+  // initial player state
+  let weapon = [1,2,3,4,5,6];
+  let hp = 20;
+  let currenthp = 20;
+  let lvl = 0;
+  let floor = 0;
+  let xp = 0;
+  let upg = 0;
+  let shield = 0;
+  let cdef = 1;
+  let heal = [0,1,2,3];
+  let critchance = [1,2,3,4,5];
 
-play = "yes"
+  let double = 0, rapid = 0, crit = 0;
+  let totem = 0, idol = 0, potion = 0;
+  let potion_usage = 0, totem_usage = 0, idol_usage = 0, victories = 0;
 
-class creature:
-    def __init__(self, name, health, strength, defense, xp_value=0, strength_type="fixed", max_health=None):
-        self.name = name
-        self.health = health
-        self.base_strength = strength
-        self.defense = defense
-        self.xp_value = xp_value
-        self.strength_type = strength_type
-        self.max_health = max_health if max_health is not None else health
-        
-    def get_strength(self):
-        if self.strength_type == "current_health":
-            return self.health
-        else:
-            return self.base_strength
+  const rng = [0,1,2,3];
+  const rng2 = [0,1,2,3,4,5,6];
+  const rng3 = [0,1,2];
+  const rng4 = [0,1];
 
-    def display_stats(self):
-        print(f"Name: {self.name}")
-        print(f"Health: {self.health}")
-        print(f"Strength: {self.get_strength()}")
-        print(f"Defense: {self.defense}")
+  // enemies
+  const coin = new Creature("Cloaked Man", 0, 0, 0);
+  const pdummy = new Creature("Practice Dummy", 10, 0, d4(), 15);
+  const crat = new Creature("Cave Rat", 3, d4()-1, 0, 2);
+  const wbat = new Creature("Weary Bat", 2, d4()-1, 1, 2);
+  const rock = new Creature("Spooky Rock", 10, 0, 0, 2);
+  const vrat = new Creature("Crazed Rats", 4, d8()-2, 0, 3);
+  const mutt = new Creature("Mangy Dog", 6, d8()-1, 0, 3);
+  const magg = new Creature("Maggot Swarm", 10, 0, -1, 5, "current_health");
 
-coin = creature("Cloaked Man", 0, 0, 0)
+  const tier0 = [coin];
+  const tier1 = [pdummy];
+  const tier2 = [crat, wbat, rock];
+  const tier3 = [vrat, mutt, magg];
+  const tier4 = [magg];
 
-pdummy = creature("Practice Dummy", 10, 0, d4(), xp_value=15)
+  // helper to update top right stats
+  function updateStats(){
+    statLevel.textContent = `Level: ${lvl}`;
+    statHP.textContent = `HP: ${currenthp}/${hp}`;
+    statFloor.textContent = `Floor: ${floor}`;
+  }
 
-crat = creature("Cave Rat", 3, d4()-1, 0, xp_value=2)
-wbat = creature("Weary Bat", 2, d4()-1, 1, xp_value=2)
-rock = creature("Spooky Rock", 10, 0, 0, xp_value=2)
+  // Main game logic as an async function to use awaits
+  async function mainGame(){
+    print("Welcome to FLINTLOCK DUNGEON (browser edition)!");
+    print("");
+    print("Note: Most inputs in this game are numeric. If you enter something invalid, you'll be prompted again.");
+    print("");
+    updateStats();
 
-vrat = creature("Crazed Rats", 4, d8()-2, 0, xp_value=3)
-mutt = creature("Mangy Dog", 6, d8()-1, 0, xp_value=3)
+    // get name
+    let nameResult = await getInput("What is your character's name?");
+    while(!nameResult.ok){
+      nameResult = await getInput("What is your character's name?");
+    }
+    const name = String(nameResult.value);
+    print(`Welcome to Flintlock Dungeon, ${name}!`);
+    print("");
+    let debug_mode = false;
+    if(name === "devcom"){ debug_mode = true; print("*** DEBUG MODE ACTIVATED ***"); }
 
+    let play = true;
 
-magg = creature("Maggot Swarm", 10, 0, -1, xp_value=5, strength_type="current_health")
+    // main game loop
+    while(play && currenthp > 0){
+      // debug menu
+      if(debug_mode){
+        print("");
+        print("*** DEBUG MENU ***");
+        print("1) Continue normally  2) Edit stats  3) Edit equipment  4) Change floor  5) Choose next enemy");
+        let res = await getInput("Choose an option (or press 1):");
+        if(!res.ok){ continue; }
+        const debug_choice = Number(res.value);
+        if(debug_choice === 2){
+          print("--- Edit Stats ---");
+          let r = await getInput("Max HP (current: " + hp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ hp = Math.max(1, Number(r.value)); }
+          r = await getInput("Current HP (current: " + currenthp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ currenthp = Math.min(hp, Math.max(0, Number(r.value))); }
+          r = await getInput("Level (current: " + lvl + "):");
+          if(r.ok && !isNaN(Number(r.value))){ lvl = Math.max(0, Number(r.value)); }
+          r = await getInput("XP (current: " + xp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ xp = Math.max(0, Number(r.value)); }
+          r = await getInput("Upgrade points (current: " + upg + "):");
+          if(r.ok && !isNaN(Number(r.value))){ upg = Math.max(0, Number(r.value)); }
+          r = await getInput("Shield/Defense (current: " + shield + "):");
+          if(r.ok && !isNaN(Number(r.value))){ shield = Math.max(0, Number(r.value)); cdef = shield + 1; }
+          print("Stats updated!");
+        } else if(debug_choice === 3){
+          print("--- Edit Equipment ---");
+          let r = await getInput("Potions (current: " + potion + "):");
+          if(r.ok && !isNaN(Number(r.value))){ potion = Math.max(0, Number(r.value)); }
+          r = await getInput("Totems (current: " + totem + "):");
+          if(r.ok && !isNaN(Number(r.value))){ totem = Math.max(0, Number(r.value)); }
+          r = await getInput("Idols (current: " + idol + "):");
+          if(r.ok && !isNaN(Number(r.value))){ idol = Math.max(0, Number(r.value)); }
+          r = await getInput("Dual Wield (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ double = Number(r.value) ? 1:0; }
+          r = await getInput("Rapid Reload (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ rapid = Number(r.value) ? 1:0; }
+          r = await getInput("Critical Hits (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ crit = Number(r.value) ? 1:0; }
+          print("Equipment updated!");
+        } else if(debug_choice === 4){
+          let r = await getInput("Floor (current: " + floor + "):");
+          if(r.ok && !isNaN(Number(r.value))){ floor = Math.max(0, Number(r.value)); }
+          print("Floor set to " + floor);
+        } else if(debug_choice === 5){
+          print("--- Choose Enemy ---");
+          print("0) Practice Dummy 1) Cave Rat 2) Weary Bat 3) Spooky Rock 4) Crazed Rats 5) Mangy Dog 6) Maggot Swarm 7) Cloaked Man");
+          let r = await getInput("Choose enemy (0-7):");
+          if(r.ok && !isNaN(Number(r.value))){
+            const idx = Number(r.value);
+            const all = [pdummy, crat, wbat, rock, vrat, mutt, magg, coin];
+            if(idx>=0 && idx<all.length){
+              // put chosen enemy as next via temporary holder
+              window._debug_next_enemy = all[idx];
+              print("Next encounter set to: " + all[idx].name);
+            }
+          }
+        } else {
+          // continue normally
+        }
+      }
 
-tier0 = [coin]
-tier1 = [pdummy]
-tier2 = [crat, wbat, rock]
-tier3 = [vrat, mutt, magg]
-tier4 = [magg]
+      // main choice: descend or quit
+      print("");
+      print("Will you DESCEND into the dungeon? Or QUIT now?");
+      print("1) Descend    2) Quit");
+      let choice = await getInput("Choose 1 or 2:");
+      if(!choice.ok) continue;
+      if(Number(choice.value) === 2){ print("You quit. Farewell."); break; }
 
-print("\n\nNote: Most inputs in this game will be in numbers. If you don't use the right input, you'll be prompted to try again.\n\n")
+      // pick enemy
+      let enemyPool;
+      if(window._debug_next_enemy){ enemyPool = [window._debug_next_enemy]; window._debug_next_enemy = null; }
+      else {
+        if(floor < 1) enemyPool = tier1;
+        else if(floor >= 1 && floor <= 3) enemyPool = tier2;
+        else if(floor === 10) enemyPool = tier0;
+        else if(floor >= 4 && floor <= 6) enemyPool = tier2.concat(tier3);
+        else enemyPool = tier3.concat(tier4);
+      }
 
-edam = None
+      const opp = deepClone(randomChoice(enemyPool));
+      opp.health = opp.max_health;
+      let round = 0;
+      print("");
+      print("A strange force draws you deeper into the dungeon...");
+      print("...");
+      print("...");
+      print(`Something approaches... ${opp.name} appears from the darkness!`);
+      updateStats();
 
-while play != "quit" and currenthp > 0:
-    # Debug menu at start of each loop
-    if debug_mode:
-        debug_choice = get_valid_input("\n*** DEBUG MENU ***\n1) Continue normally\n2) Edit stats\n3) Edit equipment\n4) Change floor\n5) Choose next enemy\n", [1, 2, 3, 4, 5])
-        
-        if debug_choice == 2:
-            print("\n--- Edit Stats ---")
-            hp = get_valid_input(f"Max HP (current: {hp}): ", list(range(1, 1001)))
-            currenthp = get_valid_input(f"Current HP (current: {currenthp}): ", list(range(0, hp + 1)))
-            lvl = get_valid_input(f"Level (current: {lvl}): ", list(range(0, 101)))
-            xp = get_valid_input(f"XP (current: {xp}): ", list(range(0, 11)))
-            upg = get_valid_input(f"Upgrade points (current: {upg}): ", list(range(0, 101)))
-            shield = get_valid_input(f"Shield/Defense (current: {shield}): ", list(range(0, 101)))
-            cdef = shield + 1
-            print("Stats updated!")
-        
-        elif debug_choice == 3:
-            print("\n--- Edit Equipment ---")
-            potion = get_valid_input(f"Potions (current: {potion}): ", list(range(0, 101)))
-            totem = get_valid_input(f"Totems (current: {totem}): ", list(range(0, 101)))
-            idol = get_valid_input(f"Idols (current: {idol}): ", list(range(0, 101)))
-            double = get_valid_input(f"Dual Wield (0=no, 1=yes, current: {double}): ", [0, 1])
-            rapid = get_valid_input(f"Rapid Reload (0=no, 1=yes, current: {rapid}): ", [0, 1])
-            crit = get_valid_input(f"Critical Hits (0=no, 1=yes, current: {crit}): ", [0, 1])
-            
-            print(f"\nCurrent weapon damage: {weapon[0]}-{weapon[-1]}")
-            edit_weapon = get_valid_input("Edit weapon? (1=yes, 2=no): ", [1, 2])
-            if edit_weapon == 1:
-                min_dam = get_valid_input("Minimum damage: ", list(range(0, 101)))
-                max_dam = get_valid_input("Maximum damage: ", list(range(min_dam, 101)))
-                weapon = list(range(min_dam, max_dam + 1))
-            
-            print(f"\nCurrent heal range: {heal[0]}-{heal[-1]}")
-            edit_heal = get_valid_input("Edit heal? (1=yes, 2=no): ", [1, 2])
-            if edit_heal == 1:
-                min_heal = get_valid_input("Minimum heal: ", list(range(0, 101)))
-                max_heal = get_valid_input("Maximum heal: ", list(range(min_heal, 101)))
-                heal = list(range(min_heal, max_heal + 1))
-            
-            if crit == 1:
-                print(f"\nCurrent crit chance bonus: {critchance[0]}-{critchance[-1]}")
-                edit_crit = get_valid_input("Edit crit chance? (1=yes, 2=no): ", [1, 2])
-                if edit_crit == 1:
-                    min_crit = get_valid_input("Minimum crit bonus: ", list(range(0, 101)))
-                    max_crit = get_valid_input("Maximum crit bonus: ", list(range(min_crit, 101)))
-                    critchance = list(range(min_crit, max_crit + 1))
-            
-            print("Equipment updated!")
-        
-        elif debug_choice == 4:
-            floor = get_valid_input(f"Floor (current: {floor}): ", list(range(0, 101)))
-            print(f"Floor set to {floor}!")
-        
-        elif debug_choice == 5:
-            print("\n--- Choose Enemy ---")
-            print("0) Practice Dummy")
-            print("1) Cave Rat")
-            print("2) Weary Bat")
-            print("3) Spooky Rock")
-            print("4) Crazed Rats")
-            print("5) Mangy Dog")
-            print("6) Maggot Swarm")
-            print("7) Cloaked Man (special)")
-            enemy_choice = get_valid_input("Choose enemy: ", [0, 1, 2, 3, 4, 5, 6, 7])
-            
-            all_enemies = [pdummy, crat, wbat, rock, vrat, mutt, magg, coin]
-            chosen_enemy = all_enemies[enemy_choice]
-            enemy = [chosen_enemy]
-            print(f"Next enemy will be: {chosen_enemy.name}")
-    
-    # Main menu input validation
-    play_choice = get_valid_input("Will you DESCEND into the dungeon? Or will you cut your losses and QUIT now?\n1) Descend\n2) Quit\n", [1, 2])
-    
-    if play_choice == 2:
-        play = "quit"
-        break
-    
-    # Set enemy if not already chosen by debug menu
-    if not (debug_mode and debug_choice == 5):
-        if floor < 1:
-            enemy = tier1
-        elif floor >= 1 and floor <= 3:
-            enemy = tier2
-        elif floor == 10:
-            enemy = tier0
-        elif floor >= 4 and floor <= 6:
-            enemy = tier2 + tier3
-    
-    if play != "quit":
-        print("A strange force draws you deeper into the dungeon...")
-        print("...")
-        print("...")
-        opp = random.choice(enemy)
-        opp.health = opp.max_health
-        round = 0
-        print(f"Something approaches... {opp.name} appears from the darkness!")
-        
-        flee = get_valid_input("What do you do? \n  1) FIGHT \n  2) FLEE \n", [1, 2])
-        
-        while flee != 2 and opp.health > 0 and opp != coin:
-            round += 1
-            if round % 2 == 0 and rapid == 0:
-                print("You hurridly begin reloading and preparing to shoot again.")
-            else:
-                chance = 0
-                if double == 0:
-                    print("You take aim and fire off a shot!")
-                    dam = random.choice(weapon)
-                    if crit == 1:
-                        chance = random.choice(critchance) + d100()
-                        if chance >= 100:
-                            dam = weapon[-1]
-                    if dam <= 0:
-                        print("Your shot goes wide, dealing no damage.")
-                    elif chance >= 100:
-                        print("Critical hit!")
-                        print(f"You do {dam} damage.")
-                        opp.health = opp.health - dam
-                    else:
-                        print(f"You do {dam} damage.")
-                        opp.health = opp.health - dam
-                elif double == 1:
-                    print("You raise your pistols and fire.")
-                    dam1 = random.choice(weapon)
-                    dam2 = random.choice(weapon)
-                    if crit == 1:
-                        chance1 = random.choice(critchance) + d100()
-                        if chance1 >= 100:
-                            dam1 = weapon[-1]
-                        chance2 = random.choice(critchance) + d100()
-                        if chance2 >= 100:
-                            dam2 = weapon[-1]
-                        chance = max(chance1, chance2)
-                    if dam1 + dam2 <= 0:
-                        print("Your shots go wide, dealing no damage.")
-                    elif chance >= 100:
-                        print("Critical hit!")
-                        print(f"You do {dam1 + dam2} damage.")
-                        opp.health = opp.health - (dam1 + dam2)
-                    else:
-                        print(f"You do {dam1 + dam2} damage.")
-                        opp.health = opp.health - (dam1 + dam2)
-            
-            if opp.health <= 0:
-                print(f"The {opp.name} collapses to the ground, defeated. You are victorious!")
-                break
-            elif opp.health > 0:
-                print("Your enemy takes a swing...")
-                edam = opp.get_strength()
-                if edam < 0:
-                    edam = 0
-                print(f"You take {edam} damage!")
-                currenthp = currenthp - edam
-                if currenthp < 0:
-                    currenthp = 0
-                
-                if currenthp > 0:
-                    print(f"You are now at {currenthp} hp.")
-                    flee = get_valid_input("What do you do? \n  1) Continue the fight \n  2) Flee \n  3) Use a Potion\n", [1, 2, 3])
-                    
-                    if flee == 3 and potion > 0:
-                        potion -= 1
-                        heal_amount = (hp + 3) // 4
-                        currenthp = min(currenthp + heal_amount, hp)
-                        potion_usage += 1
-                        print(f"You quickly pull out a potion and chug it down. The liquid invigorates you. You are now at {currenthp} HP and have {potion} potions left.")
-                        flee = 1
-                    elif flee == 3 and potion == 0:
-                        print("Your pockets are empty, and it dawns on you that you're all out of potions!")
-                        flee = 1
-                elif currenthp <= 0:
-                    print("You feel yourself grow weak and collapse to the ground, bleeding.")
-                    if totem > 0:
-                        totem -= 1
-                        currenthp = 1
-                        flee = 1
-                        totem_usage += 1
-                        print("As your vision fades, you feel something in your pocket grow warm. You use your remaining strength to grab at it.\nAs your grasping fingers find the totem, a trickle of energy enters your body. You have just enough strength to carry on for a few more minutes.\nYou rise to your feet and eye your opponent. You only have seconds left. Better make them count.")
-                    elif idol > 0:
-                        idol -= 1
-                        currenthp = hp
-                        flee = 1
-                        idol_usage += 1
-                        print("As you begin to fall, you hear a loud crack. The dark interior of the dungeon is filled with light for a brief second.\nYou reach into your pocket and find a metal idol. You pull it out and inspect it.\nIt begins to crumble in your hands, but as it does, you feel strength flow into you. You look over at your opponent.\nThey're still dazed, but not for long. Time to finish this.")
-                    else:
-                        print("Your vision fades, and your limbs grow heavy. You collapse onto the cold stone floor. The dark room grows darker around you.\nPerhaps this foolhardy venture wasn't worth it after all.")
-                        play = "quit"
-                        break
-        
-        if flee == 2 and opp.health == opp.max_health:
-            print("Coward. You gain nothing from this experience.")
-            if floor > 1:
-                floor = 1
-        elif flee == 2 and opp.health < opp.max_health:
-            print("You manage to escape the fight with your life.")
-        elif opp == coin:
-            print("The suspicious figure lifts a hand, stopping you in your tracks. He is not hostile. \nHe claims to be a travelling wizard, an adventurer like yourself. \nHe is conducting research, and needs blood to complete it. \nIf you give some of yours, he will recompense you greatly. Do you accept the offer?")
-            sac = get_valid_input("1. You outstretch your hand, allowing the stranger to draw blood.\n2. You refuse the offer.\n", [1, 2])
-            
-            if sac == 1:
-                print("You don't feel a thing as the blade slides along the length of your pointer finger, and you wonder if that's something you should worry about.\nThe stranger turns the blade around and extends a small tube from the hilt, resting it at the top of the cut.\nYour head grows woozy, and your mind swims as blood is drawn up along the tube and into the blade.\nJust before you collapse from exhaustion, the man pulls the tube back into the blade, and you suddenly feel fine again.\nThe man tosses you a pouch and you look away to catch it.\nWhen you look back, the man is gone, the leather pouch and strange scar on your hand the only evidence of the encounter.")
-                hp -= 5
-                if currenthp > hp:
-                    currenthp = hp
-                print("You open the bag, and sort through what the man has left you.")
-                rew1 = random.choice(rng)
-                rew2 = random.choice(rng2)
-                rew3 = random.choice(rng3)
-                rew4 = random.choice(rng4)
-                
-                if rew1 > 0:
-                    if rew1 == 1:
-                        print("You find a vial inside. It appears to be a less common, but still effective, healing concoction. You place it with your other healing potions.")
-                    else:
-                        print(f"You find {rew1} vials inside. They appear to be a less common, but still effective, healing concoction.\nYou place them with your other healing potions.")
-                    potion += rew1
-                
-                if rew2 > 0:
-                    if rew2 == 1:
-                        print("A small piece of metal shocks you, catching you off guard. The sensation was not painful, however, and you feel a similar feeling to after a battle.\nYou have gained an UPG point.")
-                    else:
-                        print(f"A small piece of metal shocks you, catching you off guard. The sensation was not painful, however, and you feel a similar feeling to after a battle.\nYou have gained {rew2} UPG points.")
-                    upg += rew2
-                
-                if rew3 > 0:
-                    if rew3 == 1:
-                        print("A strangely shaped piece of wood catches your eye. You pull it out and realize it is a totem to Tah. That could come in handy.")
-                    else:
-                        print("Two strangely shaped pieces of wood catch your eye. You pull them out and recognize them as totems to Tah. Those could come in handy.")
-                    totem += rew3
-                
-                if rew4 > 0:
-                    print("A heavy, misshapen metal figure rests at the bottom of the bag. You pull it out and study it.\nIt's probably of importance to somebody, but for the life of you, you have no clue what it could be for.\nYou pocket it and stand back up, ready to continue your journey.")
-                    idol += rew4
-        
-        elif flee == 1 and opp.health <= 0:
-            print("You build a modest campfire to rest and revel.")
-            xp += opp.xp_value
-            victories += 1
-            
-            while xp >= 10:
-                xp = xp - 10
-                lvl += 1
-                upg += 1
-            
-            if upg > 0:
-                cha = get_valid_input(f"You feel rising potential coursing through your fingers. \nDo you want to take the chance to enhance your skills? (you have {upg} points available)\n 1) Enhance now\n 2) Delay\n", [1, 2])
-                
-                if cha == 1:
-                    while cha != 7 and upg > 0:
-                        cha = get_valid_input(f"\nYou sit by your campfire and get to work.\nChoose what to upgrade:\n1) Tweak the aim (raise maximum damage)\n2) Polish the grip (raise minimum damage)\n3) Brew some medicine (raise minimum heal)\n4) Gather some mushrooms (raise maximum heal)\n5) Work out (raise maximum hp)\n6) Study advanced techniques (Unique upgrades)\n7) Stand up to continue your adventure.\n", [1, 2, 3, 4, 5, 6, 7])
-                        
-                        if cha == 1:
-                            upg -= 1
-                            if len(weapon) == 1:
-                                weapon[0] += 1
-                            else:
-                                weapon.pop(0)
-                        elif cha == 2:
-                            upg -= 1
-                            if len(weapon) == 1:
-                                weapon[0] += 1
-                            else:
-                                weapon.append(weapon[-1] + 1)
-                        elif cha == 3:
-                            upg -= 1
-                            if len(heal) == 1:
-                                heal[0] += 1
-                            else:
-                                heal.pop(0)
-                        elif cha == 4:
-                            upg -= 1
-                            if len(heal) == 1:
-                                heal[0] += 1
-                            else:
-                                heal.append(heal[-1] + 1)
-                        elif cha == 5:
-                            upg -= 1
-                            hp += 1
-                            currenthp += 1
-                        elif cha == 6:
-                            print(f"~Shield~\nThere's a couple of metal scraps lying around, remnants of less fortunate glory-seekers.\nYou could patch up some holes in your own armor.\nCost: {cdef} UPG points\nOwned: {shield}")
-                            print(f"~Potion~\nThe pulsing moss on the walls matches the kind your mother used to put in your tea.\nYour sure could go for a cup of that right now.\nCost: 3 UPG points\nOwned: {potion}")
-                            print(f"~Totem~\nA small chunk of wood between your feet is fairly similar in shape to the symbol the healers wave around.\nIn fact, it wouldn't take much work with your pocketknife to complete the resemblence.\nCost: 4 UPG points.\nOwned: {totem}")
-                            print(f"~Idol~\nA glint of metal catches your eye. You spot an old idol devoted to some forgotten god.\nSome polish could get it shining like new in no time.\nCost: 7 UPG points\nOwned: {idol}")
-                            if double == 0:
-                                print("~Dual Wielder~\nYou've been carrying around an old broken pistol as a sort of backup.\nMaybe now would be a good time to get it back in working order?\nCost: 5 UPG points\n")
-                            if rapid == 0:
-                                print("~Rapid Reload~\nYou remember some tinkerer in a bar bragging about a way to reload much faster.\nNow's as good a time to practice as any.\nCost: 5 UPG points\n")
-                            if crit == 0:
-                                print("~Critical Hits~\nYou brought along a book about how to effectively exterminate the common vermin of these parts.\nThat would probably come in handy.\nCost: 5 UPG points\n")
-                            elif crit == 1:
-                                print("~Critical Chance~\nYou pull out an old lucky dice from your pocket. It seems to have been luckier lately.\nDuring your time as a beggar, a streethand taught you how to weigh the dice to always roll what you want.\nNo harm if you're the only one rolling it.\nCost: 2 UPG points\n")
-                            
-                            print("1) Shield\n2) Potion\n3) Totem\n4) Idol")
-                            if double == 0:
-                                print("5) Double")
-                            if rapid == 0:
-                                print("6) Rapid Reload")
-                            if crit == 0:
-                                print("7) Critical Hits\n8) Go Back")
-                            elif crit == 1:
-                                print("7) Raise max critical chance\n8) Raise min critical chance\n9) Go Back")
-                            
-                            valid_choices = [1, 2, 3, 4, 8]
-                            if double == 0:
-                                valid_choices.append(5)
-                            if rapid == 0:
-                                valid_choices.append(6)
-                            if crit == 0:
-                                valid_choices.append(7)
-                            elif crit == 1:
-                                valid_choices.extend([7, 9])
-                            
-                            cho = get_valid_input("What do you choose to do? ", valid_choices)
-                            
-                            if cho == 1:
-                                if upg < cdef:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= cdef
-                                    cdef += 1
-                                    shield += 1
-                                    print(f"Your shield rating is now {shield}.")
-                            elif cho == 2:
-                                if upg < 3:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 3
-                                    potion += 1
-                                    print(f"You now have {potion} potions.")
-                            elif cho == 3:
-                                if upg < 4:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 4
-                                    totem += 1
-                                    print(f"You now have {totem} totems.")
-                            elif cho == 4:
-                                if upg < 7:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 7
-                                    idol += 1
-                                    print(f"You now have {idol} idols.")
-                            elif cho == 5 and double == 0:
-                                if upg < 5:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 5
-                                    double = 1
-                                    print("You hold the pistol up in the light. It matches your primary pistol almost exactly. Your handiwork is quite exemplary, if you do say so yourself. You slide it into its holster and brush the shavings off your leg. Your chances of success just doubled.")
-                            elif cho == 6 and rapid == 0:
-                                if upg < 5:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 5
-                                    rapid = 1
-                                    print("It takes some practice, but soon enough you're able to fire off shots twice as fast. You're able to effortlessly pour the powder and tamp the ball down in half the time it used to take you. Next time you see that old tinkerer you'll have to buy him a drink!")
-                            elif cho == 7 and crit == 0:
-                                if upg < 5:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    upg -= 5
-                                    crit = 1
-                                    print("Huh. You never would've guessed that the heart of a Belt Leech was just below their mouth, \nor that the lungs of a Caghoul were more sensitive than their much more protected hearts. You're glad you brought that book along.")
-                            elif cho == 7 and crit == 1:
-                                if upg < 2:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    print("You roll the die to admire your handiwork. You feel luckier already.")
-                                    upg -= 2
-                                    if len(critchance) == 1:
-                                        critchance[0] += 1
-                                    else:
-                                        critchance.pop(0)
-                            elif cho == 8 and crit == 1:
-                                if upg < 2:
-                                    print("You don't have enough upgrade points.")
-                                else:
-                                    print("You roll the die to admire your handiwork. You feel luckier already.")
-                                    upg -= 2
-                                    if len(critchance) == 1:
-                                        critchance[0] += 1
-                                    else:
-                                        critchance.append(critchance[-1] + 1)
-            
-            rest = random.choice(heal)
-            if rest == 0 and currenthp < hp:
-                print("Try as you might, you can't make yourself comfortable. You can't get past that last battle for whatever reason.\nYour incessant worrying does you no good, and you don't heal at all.")
-            elif rest > 0 and currenthp < hp:
-                currenthp = min(currenthp + rest, hp)
-                print(f"You sit at the crackling fire and stare into the warm embers. It's soothing, this little parcel of peace. As you relax, you patch yourself up a bit. You heal {rest} HP.")
-            
-            view = get_valid_input("You have a moment to reflect. Would you like to view your current stats?\n1) Yes\n2) No\n", [1, 2])
-            
-            if view == 1:
-                print("\n***STATS***")
-                print(f"Minimum possible damage: {weapon[0]}        Maximum possible damage: {weapon[-1]}")
-                print(f"Maximum HP: {hp}                            Current HP: {currenthp}")
-                print(f"Level: {lvl}                                Floor: {floor}")
-                print(f"Lifetime XP: {(lvl*10)+xp}                  XP to Next Level: {10 - xp}")
-                print(f"Defense: {shield}                           Unused UPG points: {upg}")
-                print(f"Minimum Possible Heal on Rest: {heal[0]}    Maximum Possible Heal on Rest: {heal[-1]}")
-                if crit == 1:
-                    print(f"Minimum Possible Boost to Crit: {critchance[0]} Maximum Possible Boost to Crit: {critchance[-1]}")
-                print(f"Bag Items: {potion} potions, {totem} totems, and {idol} idols.\n")
-            
-            if floor == 0:
-                floor = 1
-                print("You look over at the training dummy, splintered on the floor. You've procrastinated your destiny long enough.\nIt's time to venture deeper into the FLINTLOCK DUNGEON!")
-            else:
-                des = get_valid_input(f"Do you descend further into the dungeon? \n1. Descend even deeper. \n2. Stay on the current floor ({floor}). \nChoice: ", [1, 2])
-                
-                if des == 1:
-                    print("Whether it be courage or greed that drives you,\nyou descend further into the darkness.")
-                    floor = floor + 1
-                elif des == 2:
-                    print("Preparation never hurt, right?")
+      // fight loop
+      let flee = null;
+      while(true){
+        // prompt fight or flee
+        let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
+        if(!fchoice.ok) { continue; }
+        if(Number(fchoice.value) === 2){ flee = 2; break; }
+        // else fight
+        round++;
+        if(round % 2 === 0 && rapid === 0){
+          print("You hurriedly begin reloading and preparing to shoot again.");
+        } else {
+          let dam = 0;
+          if(double === 0){
+            print("You take aim and fire off a shot!");
+            dam = randomChoice(weapon);
+            if(crit === 1){
+              let chance = randomChoice(critchance) + d100();
+              if(chance >= 100) dam = weapon[weapon.length-1];
+            }
+            if(dam <= 0) print("Your shot goes wide, dealing no damage.");
+            else {
+              if(dam > 0) print(`You do ${dam} damage.`);
+              opp.health -= dam;
+            }
+          } else {
+            print("You raise your pistols and fire.");
+            let dam1 = randomChoice(weapon);
+            let dam2 = randomChoice(weapon);
+            if(crit === 1){
+              let c1 = randomChoice(critchance) + d100();
+              if(c1 >= 100) dam1 = weapon[weapon.length-1];
+              let c2 = randomChoice(critchance) + d100();
+              if(c2 >= 100) dam2 = weapon[weapon.length-1];
+            }
+            const tot = dam1 + dam2;
+            if(tot <= 0) print("Your shots go wide, dealing no damage.");
+            else { print(`You do ${tot} damage.`); opp.health -= tot; }
+          }
+        }
 
-print(f"\nAnd so ends the tale of {name}. You slew {victories} enemies, and gained {(lvl*10)+xp} experience.\nYou used {potion_usage} potions, {totem_usage} totems, and {idol_usage} idols.\nWould you like to see your final stats?")
+        if(opp.health <= 0){
+          print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
+          break;
+        } else {
+          print("Your enemy takes a swing...");
+          let edam = opp.getStrength();
+          if(edam < 0) edam = 0;
+          print(`You take ${edam} damage!`);
+          currenthp -= edam;
+          if(currenthp < 0) currenthp = 0;
+          updateStats();
+          if(currenthp > 0){
+            // continue, flee, or potion
+            let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
+            if(!r.ok) continue;
+            const v = Number(r.value);
+            if(v === 2){ flee = 2; break; }
+            else if(v === 3){
+              if(potion > 0){
+                potion -= 1;
+                potion_usage += 1;
+                const healAmt = Math.floor((hp + 3) / 4);
+                currenthp = Math.min(currenthp + healAmt, hp);
+                print(`You chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
+                updateStats();
+                // continue fight
+              } else {
+                print("You're out of potions!");
+              }
+            } // continue otherwise
+          } else {
+            // player dropped to 0 or less
+            print("You feel yourself grow weak and collapse to the ground, bleeding.");
+            if(totem > 0){
+              totem -= 1; totem_usage += 1; currenthp = 1; print("You used a totem and are revived to 1 HP. Fight on!");
+              updateStats();
+            } else if(idol > 0){
+              idol -= 1; idol_usage += 1; currenthp = hp; print("You used an idol and are fully restored to max HP!");
+              updateStats();
+            } else {
+              print("You collapse. Your adventure ends here.");
+              play = false;
+              break;
+            }
+          }
+        }
+      } // end fight loop
 
-final = get_valid_input("1) Yes\n2) No\n", [1, 2])
+      // post-fight handling
+      if(!play) break;
+      if(flee === 2 && opp.health === opp.max_health){
+        print("Coward. You gain nothing from this experience.");
+        if(floor > 1) floor = 1;
+      } else if(flee === 2 && opp.health < opp.max_health){
+        print("You manage to escape the fight with your life.");
+      } else if(opp === coin || opp.name === coin.name){
+        // Cloaked Man special
+        print("The suspicious figure is not hostile. He offers to draw blood for a reward.");
+        let sacRes = await getInput("1) Give blood   2) Refuse");
+        if(sacRes.ok && Number(sacRes.value) === 1){
+          print("You allow him to draw blood...");
+          hp -= 5;
+          if(currenthp > hp) currenthp = hp;
+          const rew1 = randomChoice(rng);
+          const rew2 = randomChoice(rng2);
+          const rew3 = randomChoice(rng3);
+          const rew4 = randomChoice(rng4);
+          if(rew1 > 0){ potion += rew1; print(`You find ${rew1} vial(s).`); }
+          if(rew2 > 0){ upg += rew2; print(`You gain ${rew2} UPG point(s).`); }
+          if(rew3 > 0){ totem += rew3; print(`You find ${rew3} totem(s).`); }
+          if(rew4 > 0){ idol += rew4; print(`You find ${rew4} idol(s).`); }
+        } else { print("You refuse."); }
+      } else {
+        // victory
+        xp += opp.xp_value;
+        victories++;
+        // level up
+        while(xp >= 10){
+          xp -= 10; lvl++; upg++;
+        }
+        if(upg > 0){
+          print(`You have ${upg} upgrade point(s). Do you want to spend them now?`);
+          let cha = await getInput("1) Enhance now  2) Delay");
+          if(cha.ok && Number(cha.value) === 1){
+            // upgrade loop
+            while(upg > 0){
+              print("");
+              print("Choose what to upgrade:");
+              print("1) Raise max damage     2) Raise min damage     3) Raise min heal     4) Raise max heal");
+              print("5) Increase max HP      6) Unique upgrades     7) Done");
+              let u = await getInput("Choice (1-7):");
+              if(!u.ok) break;
+              const uc = Number(u.value);
+              if(uc === 1){ upg--; // raise max damage — pop off lowest to increase min-like behavior
+                if(weapon.length === 1) weapon[0] += 1; else weapon.pop();
+                print("Max damage increased.");
+              } else if(uc === 2){ upg--; if(weapon.length === 1) weapon[0] += 1; else weapon.unshift(weapon[0]-0); weapon.push(weapon[weapon.length-1]+1); print("Min damage increased."); }
+              else if(uc === 3){ upg--; if(heal.length === 1) heal[0] += 1; else heal.shift(); print("Min heal increased."); }
+              else if(uc === 4){ upg--; if(heal.length === 1) heal[0] += 1; else heal.push(heal[heal.length-1]+1); print("Max heal increased."); }
+              else if(uc === 5){ upg--; hp++; currenthp++; print("Max HP increased by 1."); updateStats(); }
+              else if(uc === 6){
+                print("Unique upgrades available:");
+                print(`Shield cost ${cdef}  Potion cost 3  Totem cost 4  Idol cost 7`);
+                if(double===0) print("5) Dual Wield (cost 5)");
+                if(rapid===0) print("6) Rapid Reload (cost 5)");
+                if(crit===0) print("7) Critical Hits (cost 5)");
+                print("8) Back");
+                let v = await getInput("Choose:");
+                if(!v.ok) continue;
+                const cho = Number(v.value);
+                if(cho === 1){
+                  if(upg < cdef){ print("Not enough points."); }
+                  else { upg -= cdef; cdef++; shield++; print("Shield increased."); }
+                } else if(cho === 2){
+                  if(upg < 3) print("Not enough points."); else { upg -= 3; potion++; print("You brewed a potion."); }
+                } else if(cho === 3){
+                  if(upg < 4) print("Not enough points."); else { upg -=4; totem++; print("You crafted a totem."); }
+                } else if(cho === 4){
+                  if(upg < 7) print("Not enough points."); else { upg -=7; idol++; print("You polished an idol."); }
+                } else if(cho === 5 && double === 0){
+                  if(upg < 5) print("Not enough points."); else { upg -=5; double = 1; print("Dual wield acquired."); }
+                } else if(cho === 6 && rapid === 0){
+                  if(upg < 5) print("Not enough points."); else { upg -=5; rapid = 1; print("Rapid reload learned."); }
+                } else if(cho === 7 && crit === 0){
+                  if(upg < 5) print("Not enough points."); else { upg -=5; crit = 1; print("Critical hits unlocked."); }
+                } else {
+                  print("Back.");
+                }
+              } else if(uc === 7) { break; }
+              else { print("Invalid upgrade"); }
+            } // end upgrade loop
+          } // end if choose to spend
+        } // end upg > 0
+        // resting heal
+        const rest = randomChoice(heal);
+        if(rest > 0 && currenthp < hp){
+          currenthp = Math.min(currenthp + rest, hp);
+          print(`You rest and heal ${rest} HP.`);
+        } else if(rest === 0 && currenthp < hp){
+          print("You cannot find rest; you heal nothing.");
+        }
+        // view stats prompt
+        let view = await getInput("View current stats? 1) Yes  2) No");
+        if(view.ok && Number(view.value) === 1){
+          print("");
+          print("*** STATS ***");
+          print(`Damage: ${weapon[0]} - ${weapon[weapon.length-1]}`);
+          print(`Max HP: ${hp}    Current HP: ${currenthp}`);
+          print(`Level: ${lvl}    Floor: ${floor}`);
+          print(`Lifetime XP: ${(lvl*10) + xp}    XP to Next Level: ${10 - xp}`);
+          print(`Defense: ${shield}    Unused UPG points: ${upg}`);
+          print(`Heal on Rest: ${heal[0]} - ${heal[heal.length-1]}`);
+          if(crit === 1) print(`Crit boost: ${critchance[0]} - ${critchance[critchance.length-1]}`);
+          print(`Items: ${potion} potions, ${totem} totems, ${idol} idols`);
+        }
+        // floor decision
+        if(floor === 0){
+          floor = 1;
+          print("You descend to Floor 1.");
+        } else {
+          let des = await getInput(`Descend further? 1) Yes  2) Stay on floor ${floor}`);
+          if(des.ok && Number(des.value) === 1){ floor++; print("You descend deeper."); }
+          else print("You remain on this floor.");
+        }
+      } // end else (victory or other)
+      updateStats();
+    } // end main while
 
-if final == 1:
-    print("\n***FINAL STATS***")
-    print(f"Minimum possible damage: {weapon[0]}        Maximum possible damage: {weapon[-1]}")
-    print(f"Maximum HP: {hp}                            Current HP: {currenthp}")
-    print(f"Level: {lvl}                                Floor: {floor}")
-    print(f"Lifetime XP: {(lvl*10)+xp}")
-    print(f"Defense: {shield}                           Unused UPG points: {upg}")
-    print(f"Minimum Possible Heal on Rest: {heal[0]}    Maximum Possible Heal on Rest: {heal[-1]}")
-    if crit == 1:
-        print(f"Minimum Possible Boost to Crit: {critchance[0]} Maximum Possible Boost to Crit: {critchance[-1]}")
-    print(f"Bag Items: {potion} potions, {totem} totems, and {idol} idols.")
+    // game over summary
+    print("");
+    print(`And so ends the tale of ${name}. You slew ${victories} enemies, and gained ${(lvl*10)+xp} experience.`);
+    print(`You used ${potion_usage} potions, ${totem_usage} totems, and ${idol_usage} idols.`);
+    let final = await getInput("See final stats? 1) Yes  2) No");
+    if(final.ok && Number(final.value) === 1){
+      print("");
+      print("*** FINAL STATS ***");
+      print(`Damage: ${weapon[0]} - ${weapon[weapon.length-1]}`);
+      print(`Max HP: ${hp}    Current HP: ${currenthp}`);
+      print(`Level: ${lvl}    Floor: ${floor}`);
+      print(`Lifetime XP: ${(lvl*10)+xp}`);
+      print(`Defense: ${shield}    Unused UPG points: ${upg}`);
+      print(`Heal on Rest: ${heal[0]} - ${heal[heal.length-1]}`);
+      if(crit === 1) print(`Crit boost: ${critchance[0]} - ${critchance[critchance.length-1]}`);
+      print(`Items: ${potion} potions, ${totem} totems, ${idol} idols`);
+    }
+    print("");
+    print("GAME OVER — Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!");
+    input.disabled = true;
+    send.disabled = true;
+  } // end mainGame
 
-print("\nGAME OVER")
-print("Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!")
+  // small helpers
+  function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function deepClone(obj){
+    // simple clone for creatures
+    return new Creature(obj.name, obj.health, obj.base_strength, obj.defense, obj.xp_value, obj.strength_type, obj.max_health);
+  }
 
-    </py-script>
+  // Wire fallback for invalid input re-prompt: when inputResolve resolves with ok:false, re-open prompt with same valid options
+  (async function waiter(){
+    while(true){
+      if(inputResolve && inputResolve.validOptions){
+        // nothing here - we handle invalid in getInput's consumer
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+  })();
+
+  // initial instructions
+  printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
+  print("");
+  // Start the game
+  mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
+
+})();
+</script>
 </body>
 </html>
