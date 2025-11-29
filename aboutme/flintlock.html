@@ -247,6 +247,7 @@
   let cdef = 1;
   let heal = [0,1,2,3];
   let critchance = [1,2,3,4,5];
+  let gun_loaded = true;
 
   let double = 0, rapid = 0, crit = 0;
   let totem = 0, idol = 0, potion = 0;
@@ -545,7 +546,7 @@ if(opp.name === coin.name || opp === coin){
 }
 
 if (opp.name === pdummy.name){
-  print("It's just a harmless wooden effigy. It looks to be long-forgotten, but it does provide an opportunity to practice your aim. You look at the flintlock pistol in your hands. Perhaps a warm-up would be in order.")
+  print("You come across a harmless wooden effigy. It looks to be long-forgotten, but it does provide an opportunity to practice your aim. You look at the flintlock pistol in your hands. Perhaps a warm-up would be in order.")
   print("")
 }
 
@@ -590,7 +591,15 @@ if (opp.name === opp.dell){
 }
 
 if (opp.name === opp.skel){
-  print("The strange cavern comes to an impossibly wide underground opening, strewn with the corpse of some long-forgotten stronghold.")
+  print("The strange cavern comes to an impossibly wide underground opening, strewn with the corpse of some long-forgotten stronghold. Everything is deathly still, even the dust seems to stand still in the air. You make your way through the decrepit halls until you step on a large, circular brick. A symbol crawls out from beneath your boot, eery green light forming some character foreign to you. A line shoots out from beneath you forward, before sharply curving into a room you cannot see. You hold still for a moment, just to see the front half of an armored torso standing in the revealed doorway. A large, ironclad skeletal warrior steps into the hallway, blocking your path, wielding a rotting wooden shield and a rusted morningstar.")
+}
+
+if (opp.name === opp.nauk){
+  print("For the last few miles, you've been seeing glowing reflective disks in the corner of your eye. You suspect something has been following you, hunting you, but it hasn't made a move yet. You tighten your grip and press forward, feversihly checking your blind spot. Naturally, it comes when you least expect it: a spear, whizzing right at your chest. Luckily, you move just in time, and it soars right past you. A small, furry creature is charging you, wielding a sharp spear.")
+}
+
+if (opp.name === opp.tent){
+  print("The cavern is adorned with far too many stalagmites. You pick up a rock and hurl it into the cave, and it ricochets off one of the sharp stone pillars")
 }
 
       // fight loop
