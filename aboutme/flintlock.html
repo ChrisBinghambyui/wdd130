@@ -511,8 +511,12 @@
       print("A strange force draws you deeper into the dungeon...");
       print("...");
       print("...");
-      print(`Something approaches... ${opp.name} appears from the darkness!`);
+      // print(`Something approaches... ${opp.name} appears from the darkness!`);
+      // print("");
       updateStats();
+
+
+// AROUND HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         // Skip fight for Cloaked Man - go straight to interaction
 if(opp.name === coin.name || opp === coin){
@@ -540,103 +544,188 @@ if(opp.name === coin.name || opp === coin){
   continue; // Skip to next loop iteration
 }
 
+if (opp.name === pdummy.name){
+  print("It's just a harmless wooden effigy. It looks to be long-forgotten, but it does provide an opportunity to practice your aim. You look at the flintlock pistol in your hands. Perhaps a warm-up would be in order.")
+  print("")
+}
 
+if (opp.name === crat.name){
+  print("Skittering sounds grow closer, and a small lump of dark fur appears. At first it appears harmless, but then it unfurls into a menacing lump of claws and teeth. With a sharp screech, it begins to charge, and you draw your pistol.")
+}
+
+if (opp.name === opp.wbat){
+  print("As you enter the next room, your boot connects with a small stone, sending it sailing into the inky space in front of you. Following its echoes, a squeak and urgent flapping emerge. The bat is clearly enraged by its rude awakening. Send it back to sleep.")
+}
+
+if (opp.name === opp.rock){
+  print("A looming silhouette stands motionless before you. Hopefully, you spotted it before it spotted you. You duck back around the corner and train an eye on it, but it still doesn't move. You train a pistol on it, and as slowly and silently as you can manage, you approach. Once you get within 15 feet, you realize the nature of your foe: a harmless stalagmite. You look at your raised pistol. A little more target practice wouldn't hurt.")
+}
+
+if (opp.name === opp.vrat){
+  print("A cacophany of sharp scratches and squeaks grow louder as you approach the next room. You round the corner and see a convulsing mass. Upon closer ction, you realize it is corpse, infested with small rats. You take one step too close, and the sounds stop. Dozens of reflective eyes turn towards you en masse. Their bloody meal interrupted, they charge towards their new meal.")
+}
+
+if (opp.name === opp.mutt){
+  print("Out of the darkness approaches a ditry, mangy dog. It looks up at you with hungry, pleading eyes. You take out a piece of your rations, and kneel offering it to the poor, abandoned pup. Without warning, it bares its teeth and braces to charge. Friends are hard to come across this deep, it would seem.")
+}
+
+if (opp.name === opp.ybel){
+  print("The sound of something heavy and wet slapping into the floor causes you to whip around. You scan the dim causeway behind you, but see nothing amiss. You continue on your way, but before long, you hear the sound of something dragging along the stone floor behind you. This time you whirl around fast enough to see what appears to be a section of the floor slithering towards you. You fire off a warning shot, and the strange shape rises up. The Beltleech is flat and dark, but it opens its mouth, revealing rows and rows of teeth that should not fit.")
+}
+
+if (opp.name === opp.magg){
+  print("A glowing blue river gurgles a greeting for you in the next cavern. You drop and cup your hands, inspecting the fascinating liquid. You've heard of a variety of cave fish that can thrive in patches of water this deep, but this section is empty. A stream of bubbles whirl around your hand, dancing almost methodically. They rise, and you see they aren't bubbles at all. A horde of maggots rise from the water lifting themselves until they match you in height. With an eery silence, the mass surges towards you as a whole.")
+}
+
+if (opp.name === opp.ygos){
+  print("The wide cavern before you contains the long-decayed remains of some kind of permanent settlement. You can make out pillars that long ago gave up on crumbling and now rest in masses barely resembling what must have once been a magnificent structure. Whispers attend you as walk the abandoned halls, and you know you are not alone. Pale mist apparates before you, slowly assembling into the form of a humanoid, but you can't make out the exact nature of the likely-extinct race. As the face forms, it is malformed and twisted into a grimace, before flowing towards you, ghastly arms outstretched.")
+}
+
+if (opp.name === opp.ycag){
+  print("Methodic thumping sounds grow in volume as you travel down the dimly lit catacombs. You find yourrself facing a Caghouse, a strage creature not unsimilar from the turtles you'd collect back home. This beingg, however, is magnitudes larger, and its shell is jet black, indicating it as a youth. As it notices your presence, it drops onto all six legs and lets out a long, low humming sound from its beak. The hums fluctuate in tone, seeming to either sense you or communicate with you. Either way, it appears unsatisfied, as it drops low to the ground and begins to charge, the rough, bony tail behind it dragging loudly.")
+}
+
+if (opp.name === opp.dell){
+  print("You sit down, exhausted. This cavern is unusually warm. You hear a strange clicking sound, accompanied by some utterly alien chirps. You turn around, searching in every direction for the origin of the noise. You are lucky this time: you manage to spot two reflective purple eyes just before they lunge towards you. The large, black cat soars over you after you duck just in time. It lands gracefully and whips around, long tail whipping and snapping dangerously.")
+}
+
+if (opp.name === opp.skel){
+  print("The strange cavern comes to an impossibly wide underground opening, strewn with the corpse of some long-forgotten stronghold.")
+}
 
       // fight loop
       let flee = null;
-      while(true){
-        // prompt fight or flee
-        let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
-        if(!fchoice.ok) { continue; }
-        if(Number(fchoice.value) === 2){ flee = 2; break; }
-        // else fight
-        round++;
-        if(round % 2 === 0 && rapid === 0){
-          print("You hurriedly begin reloading and preparing to shoot again.");
-        } else {
-          let dam = 0;
-          if(double === 0){
-            print("You take aim and fire off a shot!");
-            dam = randomChoice(weapon);
-            if(crit === 1){
-              let chance = randomChoice(critchance) + d100();
-              if(chance >= 100) dam = weapon[weapon.length-1];
-            }
-            if(dam <= 0) print("Your shot goes wide, dealing no damage.");
-            else {
-              if(dam > 0) print(`You do ${dam} damage.`);
-              opp.health -= dam;
-            }
-          } else {
-            print("You raise your pistols and fire.");
-            let dam1 = randomChoice(weapon);
-            let dam2 = randomChoice(weapon);
-            if(crit === 1){
-              let c1 = randomChoice(critchance) + d100();
-              if(c1 >= 100) dam1 = weapon[weapon.length-1];
-              let c2 = randomChoice(critchance) + d100();
-              if(c2 >= 100) dam2 = weapon[weapon.length-1];
-            }
-            const tot = dam1 + dam2;
-            if(tot <= 0) print("Your shots go wide, dealing no damage.");
-            else { print(`You do ${tot} damage.`); opp.health -= tot; }
-          }
-        }
+      print("")
+      // Initial fight or flee choice
+      let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
+      if(!fchoice.ok) { 
+        updateStats();
+        continue; 
+      }
+      if(Number(fchoice.value) === 2){ 
+        flee = 2; 
+      } else {
+        // Combat loop - only runs if player chose to fight
+while(flee !== 2 && opp.health > 0 && currenthp > 0){
+  round++;
+  
+  // Check if gun needs reloading
+  if(!gun_loaded && rapid === 0){
+    print("You hurriedly begin reloading and preparing to shoot again.");
+    gun_loaded = true;  // Gun is now loaded
+    // Don't shoot this turn, just reload
+  } else {
+    // Can shoot this turn
+    let dam = 0;
+    if(double === 0){
+      print("You take aim and fire off a shot!");
+      dam = randomChoice(weapon);
+      if(crit === 1){
+        let chance = randomChoice(critchance) + d100();
+        if(chance >= 100) dam = weapon[weapon.length-1];
+      }
+      if(dam <= 0) print("Your shot goes wide, dealing no damage.");
+      else {
+        if(dam > 0) print(`You do ${dam} damage.`);
+        opp.health -= dam;
+      }
+      gun_loaded = false;  // Gun is now empty
+    } else {
+      print("You raise your pistols and fire.");
+      let dam1 = randomChoice(weapon);
+      let dam2 = randomChoice(weapon);
+      if(crit === 1){
+        let c1 = randomChoice(critchance) + d100();
+        if(c1 >= 100) dam1 = weapon[weapon.length-1];
+        let c2 = randomChoice(critchance) + d100();
+        if(c2 >= 100) dam2 = weapon[weapon.length-1];
+      }
+      const tot = dam1 + dam2;
+      if(tot <= 0) print("Your shots go wide, dealing no damage.");
+      else { print(`You do ${tot} damage.`); opp.health -= tot; }
+      gun_loaded = false;  // Guns are now empty
+    }
+    
+    // With rapid reload, automatically reload after shooting
+    if(rapid === 1 && !gun_loaded){
+      gun_loaded = true;
+    }
+  }
 
-        if(opp.health <= 0){
-          print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
-          break;
-        } else {
-          print("Your enemy takes a swing...");
-          let edam = opp.getStrength();
-          if(opp.name === "Young Beltleech") edam = round;
-          if(edam < 0) edam = 0;
-          print(`You take ${edam} damage!`);
-          currenthp -= edam;
-          if(currenthp < 0) currenthp = 0;
+  if(opp.health <= 0){
+    print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
+    break;
+  } else {
+    print("Your enemy takes a swing...");
+    let edam = opp.getStrength();
+    if(opp.name === "Young Beltleech") edam = round;
+    if(edam < 0) edam = 0;
+    print(`You take ${edam} damage!`);
+    currenthp -= edam;
+    if(currenthp < 0) currenthp = 0;
+    
+    // HP recovery for specific enemies
+    if((opp.name === "Young Beltleech" || opp.name === "Rooted Myr" || opp.name === "Heart of the Mountain") && (opp.health > 0)){
+      const recovered = Math.floor(edam / 2);
+      if(recovered > 0){
+        opp.health = Math.min(opp.health + recovered, opp.max_health);
+        print(`The ${opp.name} recovers ${recovered} HP from its attack!`);
+      }
+    }
+    
+    updateStats();
+    if(currenthp > 0){
+      // continue, flee, or potion
+      let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
+      if(!r.ok) continue;
+      const v = Number(r.value);
+      if(v === 2){ 
+        flee = 2; 
+        break; 
+      }
+      else if(v === 3){
+        if(potion > 0){
+          potion -= 1;
+          potion_usage += 1;
+          const healAmt = Math.floor((hp + 3) / 4);
+          currenthp = Math.min(currenthp + healAmt, hp);
+          print(`As swiftly as possible, you chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
           updateStats();
-          if(currenthp > 0){
-            // continue, flee, or potion
-            let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
-            if(!r.ok) continue;
-            const v = Number(r.value);
-            if(v === 2){ flee = 2; break; }
-            else if(v === 3){
-              if(potion > 0){
-                potion -= 1;
-                potion_usage += 1;
-                const healAmt = Math.floor((hp + 3) / 4);
-                currenthp = Math.min(currenthp + healAmt, hp);
-                print(`You chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
+          // Gun status unchanged - still needs reload if it was empty
+        } else {
+          print("In a moment of horror, you realize you're all out of potions!");
+        }
+      }
+      // if v === 1, just continue the loop naturally
+    } else {
+      // ... rest of the death/revival code stays the same
+              // player dropped to 0 or less
+              print("You feel yourself grow weak and collapse to your knees, bleeding.");
+              if(totem > 0){
+                totem -= 1; totem_usage += 1; currenthp = 1; 
+                print("You used a totem and are revived to 1 HP. Fight on!");
                 updateStats();
-                // continue fight
+                // continue fighting
+              } else if(idol > 0){
+                idol -= 1; idol_usage += 1; currenthp = hp; 
+                print("You used an idol and are fully restored to max HP!");
+                updateStats();
+                // continue fighting
               } else {
-                print("You're out of potions!");
+                print("You collapse in a heap. Your adventure ends here.");
+                play = false;
+                break;
               }
-            } // continue otherwise
-          } else {
-            // player dropped to 0 or less
-            print("You feel yourself grow weak and collapse to the ground, bleeding.");
-            if(totem > 0){
-              totem -= 1; totem_usage += 1; currenthp = 1; print("You used a totem and are revived to 1 HP. Fight on!");
-              updateStats();
-            } else if(idol > 0){
-              idol -= 1; idol_usage += 1; currenthp = hp; print("You used an idol and are fully restored to max HP!");
-              updateStats();
-            } else {
-              print("You collapse. Your adventure ends here.");
-              play = false;
-              break;
             }
           }
-        }
-      } // end fight loop
+        } // end combat while loop
+      } // end else (chose to fight) // end fight loop
 
       // post-fight handling
       if(!play) break;
       if(flee === 2 && opp.health === opp.max_health){
         print("Coward. You gain nothing from this experience.");
-        if(floor > 1) floor = 1;
+        if(floor > 1) floor = floor/2;
       } else if(flee === 2 && opp.health < opp.max_health){
         print("You manage to escape the fight with your life.");
     //   } else if(opp === coin || opp.name === coin.name){

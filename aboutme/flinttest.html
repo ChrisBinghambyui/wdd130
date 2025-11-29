@@ -540,97 +540,121 @@ if(opp.name === coin.name || opp === coin){
   continue; // Skip to next loop iteration
 }
 
-
-
       // fight loop
       let flee = null;
-      while(true){
-        // prompt fight or flee
-        let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
-        if(!fchoice.ok) { continue; }
-        if(Number(fchoice.value) === 2){ flee = 2; break; }
-        // else fight
-        round++;
-        if(round % 2 === 0 && rapid === 0){
-          print("You hurriedly begin reloading and preparing to shoot again.");
-        } else {
-          let dam = 0;
-          if(double === 0){
-            print("You take aim and fire off a shot!");
-            dam = randomChoice(weapon);
-            if(crit === 1){
-              let chance = randomChoice(critchance) + d100();
-              if(chance >= 100) dam = weapon[weapon.length-1];
-            }
-            if(dam <= 0) print("Your shot goes wide, dealing no damage.");
-            else {
-              if(dam > 0) print(`You do ${dam} damage.`);
-              opp.health -= dam;
-            }
+      
+      // Initial fight or flee choice
+      let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
+      if(!fchoice.ok) { 
+        updateStats();
+        continue; 
+      }
+      if(Number(fchoice.value) === 2){ 
+        flee = 2; 
+      } else {
+        // Combat loop - only runs if player chose to fight
+        while(flee !== 2 && opp.health > 0 && currenthp > 0){
+          round++;
+          if(round % 2 === 0 && rapid === 0){
+            print("You hurriedly begin reloading and preparing to shoot again.");
           } else {
-            print("You raise your pistols and fire.");
-            let dam1 = randomChoice(weapon);
-            let dam2 = randomChoice(weapon);
-            if(crit === 1){
-              let c1 = randomChoice(critchance) + d100();
-              if(c1 >= 100) dam1 = weapon[weapon.length-1];
-              let c2 = randomChoice(critchance) + d100();
-              if(c2 >= 100) dam2 = weapon[weapon.length-1];
-            }
-            const tot = dam1 + dam2;
-            if(tot <= 0) print("Your shots go wide, dealing no damage.");
-            else { print(`You do ${tot} damage.`); opp.health -= tot; }
-          }
-        }
-
-        if(opp.health <= 0){
-          print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
-          break;
-        } else {
-          print("Your enemy takes a swing...");
-          let edam = opp.getStrength();
-          if(opp.name === "Young Beltleech") edam = round;
-          if(edam < 0) edam = 0;
-          print(`You take ${edam} damage!`);
-          currenthp -= edam;
-          if(currenthp < 0) currenthp = 0;
-          updateStats();
-          if(currenthp > 0){
-            // continue, flee, or potion
-            let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
-            if(!r.ok) continue;
-            const v = Number(r.value);
-            if(v === 2){ flee = 2; break; }
-            else if(v === 3){
-              if(potion > 0){
-                potion -= 1;
-                potion_usage += 1;
-                const healAmt = Math.floor((hp + 3) / 4);
-                currenthp = Math.min(currenthp + healAmt, hp);
-                print(`You chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
-                updateStats();
-                // continue fight
-              } else {
-                print("You're out of potions!");
+            let dam = 0;
+            if(double === 0){
+              print("You take aim and fire off a shot!");
+              dam = randomChoice(weapon);
+              if(crit === 1){
+                let chance = randomChoice(critchance) + d100();
+                if(chance >= 100) dam = weapon[weapon.length-1];
               }
-            } // continue otherwise
-          } else {
-            // player dropped to 0 or less
-            print("You feel yourself grow weak and collapse to the ground, bleeding.");
-            if(totem > 0){
-              totem -= 1; totem_usage += 1; currenthp = 1; print("You used a totem and are revived to 1 HP. Fight on!");
-              updateStats();
-            } else if(idol > 0){
-              idol -= 1; idol_usage += 1; currenthp = hp; print("You used an idol and are fully restored to max HP!");
-              updateStats();
+              if(dam <= 0) print("Your shot goes wide, dealing no damage.");
+              else {
+                if(dam > 0) print(`You do ${dam} damage.`);
+                opp.health -= dam;
+              }
             } else {
-              print("You collapse. Your adventure ends here.");
-              play = false;
-              break;
+              print("You raise your pistols and fire.");
+              let dam1 = randomChoice(weapon);
+              let dam2 = randomChoice(weapon);
+              if(crit === 1){
+                let c1 = randomChoice(critchance) + d100();
+                if(c1 >= 100) dam1 = weapon[weapon.length-1];
+                let c2 = randomChoice(critchance) + d100();
+                if(c2 >= 100) dam2 = weapon[weapon.length-1];
+              }
+              const tot = dam1 + dam2;
+              if(tot <= 0) print("Your shots go wide, dealing no damage.");
+              else { print(`You do ${tot} damage.`); opp.health -= tot; }
             }
           }
-        }
-      } // end fight loop
+
+          if(opp.health <= 0){
+            print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
+            break;
+          } else {
+            print("Your enemy takes a swing...");
+            let edam = opp.getStrength();
+            if(opp.name === "Young Beltleech") edam = (round+3);
+            if(edam < 0) edam = 0;
+            print(`You take ${edam} damage!`);
+            currenthp -= edam;
+            if(currenthp < 0) currenthp = 0;
+            
+            // HP recovery for specific enemies
+            if((opp.name === "Young Beltleech" || opp.name === "Rooted Myr" || opp.name === "Heart of the Mountain") && (opp.health>0)){
+              const recovered = Math.floor(edam / 2);
+              if(recovered > 0){
+                opp.health = Math.min(opp.health + recovered, opp.max_health);
+                print(`The ${opp.name} recovers ${recovered} HP from its attack!`);
+              }
+            }
+            
+            updateStats();
+            if(currenthp > 0){
+              // continue, flee, or potion
+              let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
+              if(!r.ok) continue;
+              const v = Number(r.value);
+              if(v === 2){ 
+                flee = 2; 
+                break; 
+              }
+              else if(v === 3){
+                if(potion > 0){
+                  potion -= 1;
+                  potion_usage += 1;
+                  const healAmt = Math.floor((hp + 3) / 4);
+                  currenthp = Math.min(currenthp + healAmt, hp);
+                  print(`As swiftly as possible, you chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
+                  updateStats();
+                  // continue fight (loop continues)
+                } else {
+                  print("In a moment of horror, you realize you're all out of potions!");
+                  // continue fight (loop continues)
+                }
+              }
+              // if v === 1, just continue the loop naturally
+            } else {
+              // player dropped to 0 or less
+              print("You feel yourself grow weak and collapse to your knees, bleeding.");
+              if(totem > 0){
+                totem -= 1; totem_usage += 1; currenthp = 1; 
+                print("You used a totem and are revived to 1 HP. Fight on!");
+                updateStats();
+                // continue fighting
+              } else if(idol > 0){
+                idol -= 1; idol_usage += 1; currenthp = hp; 
+                print("You used an idol and are fully restored to max HP!");
+                updateStats();
+                // continue fighting
+              } else {
+                print("You collapse in a heap. Your adventure ends here.");
+                play = false;
+                break;
+              }
+            }
+          }
+        } // end combat while loop
+      } // end else (chose to fight) // end fight loop
 
       // post-fight handling
       if(!play) break;
