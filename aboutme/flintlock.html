@@ -143,7 +143,7 @@
   Works locally: save as HTML and open in Chrome.
 */
 
-(function(){
+window.addEventListener('DOMContentLoaded', function(){
   // Utilities
   const screen = document.getElementById('screen');
   const input = document.getElementById('cmd');
@@ -258,10 +258,7 @@
   const rng3 = [0,1,2];
   const rng4 = [0,1];
 
-  // enemies
   const coin = new Creature("Cloaked Man", 10000, 0, 0);
-
-// name, hp, atk, def, xp
 
   const pdummy = new Creature("Practice Dummy", 10, 0, d4(), 15);
   
@@ -928,7 +925,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
   printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
   print("");
   mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
-})();
+}}});
 </script>
 </body>
 </html>
