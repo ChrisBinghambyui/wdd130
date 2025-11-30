@@ -624,10 +624,8 @@ if (opp.name === cagh.name){
   print("")
 }
 
-      // fight loop
       let flee = null;
       print("")
-      // Initial fight or flee choice
       let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
       if(!fchoice.ok) { 
         updateStats();
@@ -636,17 +634,13 @@ if (opp.name === cagh.name){
       if(Number(fchoice.value) === 2){ 
         flee = 2; 
       } else {
-        // Combat loop - only runs if player chose to fight
 while(flee !== 2 && opp.health > 0 && currenthp > 0){
   round++;
-  
-  // Check if gun needs reloading
+
   if(!gun_loaded && rapid === 0){
     print("You hurriedly begin reloading and preparing to shoot again.");
-    gun_loaded = true;  // Gun is now loaded
-    // Don't shoot this turn, just reload
+    gun_loaded = true;
   } else {
-    // Can shoot this turn
     let dam = 0;
     if(double === 0){
       print("You take aim and fire off a shot!");
@@ -660,7 +654,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
         if(dam > 0) print(`You do ${dam} damage.`);
         opp.health -= dam;
       }
-      gun_loaded = false;  // Gun is now empty
+      gun_loaded = false;
     } else {
       print("You raise your pistols and fire.");
       let dam1 = randomChoice(weapon);
@@ -674,10 +668,9 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
       const tot = dam1 + dam2;
       if(tot <= 0) print("Your shots go wide, dealing no damage.");
       else { print(`You do ${tot} damage.`); opp.health -= tot; }
-      gun_loaded = false;  // Guns are now empty
+      gun_loaded = false;
     }
     
-    // With rapid reload, automatically reload after shooting
     if(rapid === 1 && !gun_loaded){
       gun_loaded = true;
     }
@@ -688,14 +681,34 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
     break;
   } else {
     print("Your enemy takes a swing...");
-    let edam = opp.getStrength();
-    if(opp.name === "Young Beltleech") edam = round;
+    let edam = 0;
+    if(opp.name === "Young Beltleech") {
+      edam = round;
+    } else if(opp.strength_type === "current_health") {
+      edam = opp.health;
+    } else {
+      if(opp.name === "Cave Rat" || opp.name === "Weary Bat") edam = d4() - 1;
+      else if(opp.name === "Crazed Rats") edam = d8() - 2;
+      else if(opp.name === "Mangy Dog" || opp.name === "Decrepit Ghost") edam = d6() - 1;
+      else if(opp.name === "Young Caghouse") edam = d8();
+      else if(opp.name === "Dellinid Prowler") edam = d6() + d6();
+      else if(opp.name === "Skeletal Guard") edam = d8() + 2;
+      else if(opp.name === "Naukin Scout") edam = d4() + d4() + d4();
+      else if(opp.name === "Fleshy Protrusion") edam = d8() + d4();
+      else if(opp.name === "Myrrim Rotguard") edam = d12() + 1;
+      else if(opp.name === "Predator Wyrm") edam = d8() + d8() + d8();
+      else if(opp.name === "Hammerhead Tunneler") edam = d10() + 2;
+      else if(opp.name === "Rooted Myr") edam = d12() + d12();
+      else if(opp.name === "Marrow Golem") edam = d12() + 10;
+      else if(opp.name === "Terragan") edam = d10() + d10() + d10() + 5;
+      else if(opp.name === "Myrrim Goliath") edam = d40();
+      else if(opp.name === "Heart of the Mountain") edam = d20() + d20() + 10;
+    }
     if(edam < 0) edam = 0;
     print(`You take ${edam} damage!`);
     currenthp -= edam;
     if(currenthp < 0) currenthp = 0;
     
-    // HP recovery for specific enemies
     if((opp.name === "Young Beltleech" || opp.name === "Rooted Myr" || opp.name === "Heart of the Mountain") && (opp.health > 0)){
       const recovered = Math.floor(edam / 2);
       if(recovered > 0){
@@ -703,10 +716,9 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
         print(`The ${opp.name} recovers ${recovered} HP from its attack!`);
       }
     }
-    
+  
     updateStats();
     if(currenthp > 0){
-      // continue, flee, or potion
       let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
       if(!r.ok) continue;
       const v = Number(r.value);
@@ -722,26 +734,21 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           currenthp = Math.min(currenthp + healAmt, hp);
           print(`As swiftly as possible, you chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
           updateStats();
-          // Gun status unchanged - still needs reload if it was empty
         } else {
           print("In a moment of horror, you realize you're all out of potions!");
         }
       }
-      // if v === 1, just continue the loop naturally
     } else {
-      // ... rest of the death/revival code stays the same
-              // player dropped to 0 or less
               print("You feel yourself grow weak and collapse to your knees, bleeding.");
               if(totem > 0){
                 totem -= 1; totem_usage += 1; currenthp = 1; 
-                print("You used a totem and are revived to 1 HP. Fight on!");
+                print("You feel a strange vibrating motion in your pocket. You reach in and find one of your totems, rattling of its own accord. In a weak flash of light, the totem ignites in your hands and crumbles to ash. You feel a modicum of strength pour back into you. You don't have much time, but at least you're on your feet.");
                 updateStats();
                 // continue fighting
               } else if(idol > 0){
                 idol -= 1; idol_usage += 1; currenthp = hp; 
-                print("You used an idol and are fully restored to max HP!");
+                print("Your eyes grow heavy, and your head feels dizzy. An uncomfortable heat builds near your side, and you reach around to feel the source. One of the idols you found is glowing, and the light is getting brighter and brighter. In a brilliant flash, its gone, and you feel your strength fully restored. You make your way to your feet. Time to end this.");
                 updateStats();
-                // continue fighting
               } else {
                 print("You collapse in a heap. Your adventure ends here.");
                 play = false;
@@ -749,35 +756,14 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
               }
             }
           }
-        } // end combat while loop
-      } // end else (chose to fight) // end fight loop
-
-      // post-fight handling
+        }
       if(!play) break;
       if(flee === 2 && opp.health === opp.max_health){
         print("Coward. You gain nothing from this experience.");
-        if(floor > 1) floor = floor/2;
+        if(floor > 1) floor = Math.floor(Math.round(floor/2));
       } else if(flee === 2 && opp.health < opp.max_health){
         print("You manage to escape the fight with your life.");
-    //   } else if(opp === coin || opp.name === coin.name){
-    //     // Cloaked Man special
-    //     print("The suspicious figure is not hostile. He offers to draw blood for a reward.");
-    //     let sacRes = await getInput("1) Give blood   2) Refuse");
-    //     if(sacRes.ok && Number(sacRes.value) === 1){
-    //       print("You allow him to draw blood...");
-    //       hp -= 5;
-    //       if(currenthp > hp) currenthp = hp;
-    //       const rew1 = randomChoice(rng);
-    //       const rew2 = randomChoice(rng2);
-    //       const rew3 = randomChoice(rng3);
-    //       const rew4 = randomChoice(rng4);
-    //       if(rew1 > 0){ potion += rew1; print(`You find ${rew1} vial(s).`); }
-    //       if(rew2 > 0){ upg += rew2; print(`You gain ${rew2} UPG point(s).`); }
-    //       if(rew3 > 0){ totem += rew3; print(`You find ${rew3} totem(s).`); }
-    //       if(rew4 > 0){ idol += rew4; print(`You find ${rew4} idol(s).`); }
-    //     } else { print("You refuse."); }
       } else {
-        // victory
         xp += opp.xp_value;
         victories++;
         // level up
@@ -788,7 +774,6 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           print(`You have ${upg} upgrade point(s). Do you want to spend them now?`);
           let cha = await getInput("1) Enhance now  2) Delay");
           if(cha.ok && Number(cha.value) === 1){
-            // upgrade loop
             while(upg > 0){
               print("");
               print("Choose what to upgrade:");
@@ -801,7 +786,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
                 if(weapon.length === 1) {
                     weapon[0] += 1;
                 } else {
-                    weapon.push(weapon[weapon.length-1] + 1); // Add higher value to end
+                    weapon.push(weapon[weapon.length-1] + 1);
                 }
                 print("Max damage increased.");
                 } else if(uc === 2){ 
@@ -809,7 +794,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
                 if(weapon.length === 1) {
                     weapon[0] += 1;
                 } else {
-                    weapon.shift(); // Remove lowest value from start
+                    weapon.shift();
                 }
                 print("Min damage increased.");
                 }
@@ -869,12 +854,11 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
   } else if(cho === 9) {
     print("Back to main upgrades.");
   } else {
-    print("Invalid choice."); }
+    print("Invalid choice.");
   }
-} // end upgrade loop
-          } // end if choose to spend
-        } // end upg > 0
-        // resting heal
+            }
+          }
+        }
         const rest = randomChoice(heal);
         if(rest > 0 && currenthp < hp){
           currenthp = Math.min(currenthp + rest, hp);
@@ -882,7 +866,6 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
         } else if(rest === 0 && currenthp < hp){
           print("You cannot find rest; you heal nothing.");
         }
-        // view stats prompt
         let view = await getInput("View current stats? 1) Yes  2) No");
         if(view.ok && Number(view.value) === 1){
           print("");
@@ -905,11 +888,9 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           if(des.ok && Number(des.value) === 1){ floor++; print("You descend deeper."); }
           else print("You remain on this floor.");
         }
-      } // end else (victory or other)
+      }
       updateStats();
-    } // end main while
-
-    // game over summary
+    } 
     print("");
     print(`And so ends the tale of ${name}. You slew ${victories} enemies, and gained ${(lvl*10)+xp} experience.`);
     print(`You used ${potion_usage} potions, ${totem_usage} totems, and ${idol_usage} idols.`);
@@ -930,31 +911,23 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
     print("GAME OVER — Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!");
     input.disabled = true;
     send.disabled = true;
-  } // end mainGame
-
-  // small helpers
+  }
   function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function deepClone(obj){
-    // simple clone for creatures
     return new Creature(obj.name, obj.health, obj.base_strength, obj.defense, obj.xp_value, obj.strength_type, obj.max_health);
   }
 
-  // Wire fallback for invalid input re-prompt: when inputResolve resolves with ok:false, re-open prompt with same valid options
   (async function waiter(){
     while(true){
       if(inputResolve && inputResolve.validOptions){
-        // nothing here - we handle invalid in getInput's consumer
       }
       await new Promise(r => setTimeout(r, 100));
     }
   })();
 
-  // initial instructions
   printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
   print("");
-  // Start the game
   mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
-
 })();
 </script>
 </body>
