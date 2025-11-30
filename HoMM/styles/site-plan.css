@@ -35,6 +35,7 @@ body {
   padding: 4em;
   font-size: 18px;
   text-align: center;
+  background-color: var(--accent2-color);
 }
 img {
   display: block;
@@ -172,4 +173,112 @@ nav a:hover {
   grid-area: right;
   border-top: 1px solid;
   border-right: 1px solid;
+}
+
+
+#content {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr; 
+  gap: 20px;
+  align-items: start;
+}
+
+header {
+  grid-column: 1 / -1; 
+  grid-row: 1 / 2;
+}
+
+.sidebar {
+  display: contents; 
+}
+
+#angel {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  justify-self: center;
+  margin: 0;
+  max-width: 100%;
+  /* background-color: var(--nav-link-color); */
+}
+
+#devil {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+  justify-self: center;
+  margin: 0;
+  max-width: 100%;
+  /* background-color: var(--headline-color-on-color); */
+}
+
+#hero {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  
+}
+
+#hero-box {
+  grid-column: 1 / -1;
+  grid-row: 3 / 4;
+  width: 100%;
+}
+
+#hero-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.home-grid {
+  grid-column: 1 / -1;
+  grid-row: 4 / 5;
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  gap: 20px;
+}
+
+.history {
+  grid-column: 1 / 2;
+}
+
+.intro-text {
+  grid-column: 2 / 3;
+}
+
+.music {
+  grid-column: 3 / 4;
+}
+
+footer {
+  grid-column: 1 / -1;
+  grid-row: 5 / 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2em;
+  gap: 20px;
+  background-color: var(--paragraph-background-color);
+}
+
+footer p {
+  margin: 0;
+  padding: 0.5em;
+  color: var(--paragraph-color-on-color);
+}
+
+footer a {
+  color: var(--paragraph-color-on-color);
+}
+
+footer a:hover {
+  color: var(--nav-hover-link-color);
+}
+
+footer .gif {
+  display: flex;
+  align-items: center;
+}
+
+footer .gif img {
+  max-height: 80px;
+  width: auto;
 }
