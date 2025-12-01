@@ -281,11 +281,11 @@
 
   const tent = new Creature("Fleshy Protrusion", 15, d8()+d4(), 2, 10);
   const myrm = new Creature("Myrrim Rotguard", 10, d12()+1, 3, 10);
-  const pred = new Creature("Predator Wyrm", 20, d8()+d8()+d8(), 2, 10);
+  const cagh = new Creature("Roaming Caghouse", 15, 15, 4, 10);
 
   const wyrm = new Creature("Hammerhead Tunneler", 12, d10()+2, 4, 15);
   const skit = new Creature("Skittran Scouts", 17, 0, 5, 15, "current_health");
-  const cagh = new Creature("Roaming Caghouse", 15, 15, 4, 15);
+  const pred = new Creature("Predator Wyrm", 20, d8()+d8()+d8(), 2, 15);
 
   const enak = new Creature("Naukin Patrol", 30, 0, 2, 20, "current_health");
   const mysa = new Creature("Rooted Myr", 30, d12()+d12(), d6(), 20);
@@ -303,8 +303,8 @@
   const tier3 = [vrat, mutt, ybel];
   const tier4 = [magg, ygos, ycag];
   const tier5 = [dell, skel, nauk];
-  const tier6 = [tent, wyrm, myrm];
-  const tier7 = [pred, skit, cagh];
+  const tier6 = [tent, cagh, myrm];
+  const tier7 = [pred, skit, wyrm];
   const tier8 = [enak, mysa, marr];
   const tier9 = [skar, terr, myrg];
   const tier10 = [hrt];
@@ -573,11 +573,11 @@ if (opp.name === magg.name){
 }
 
 if (opp.name === ygos.name){
-  print("The wide cavern before you contains the long-decayed remains of some kind of permanent settlement. You can make out pillars that long ago gave up on crumbling and now rest in masses barely resembling what must have once been a magnificent structure. Whispers attend you as walk the abandoned halls, and you know you are not alone. Pale mist apparates before you, slowly assembling into the form of a humanoid, but you can't make out the exact nature of the likely-extinct race. As the face forms, it is malformed and twisted into a grimace, before flowing towards you, ghastly arms outstretched.")
+  print("The wide cavern before you contains the long-decayed remains of some kind of permanent settlement. You can make out pillars that long ago gave up on crumbling and now rest in masses barely resembling what must have once been a magnificent structure. Whispers attend you as you walk the abandoned halls, and you know you are not alone. Pale mist apparates before you, slowly assembling into the form of a humanoid, but you can't make out the exact nature of the likely-extinct race. As the face forms, it is malformed and twisted into a grimace, before flowing towards you, ghastly arms outstretched.")
 }
 
 if (opp.name === ycag.name){
-  print("Methodic thumping sounds grow in volume as you travel down the dimly lit catacombs. You find yourrself facing a Caghouse, a strage creature not unsimilar from the turtles you'd collect back home. This beingg, however, is magnitudes larger, and its shell is jet black, indicating it as a youth. As it notices your presence, it drops onto all six legs and lets out a long, low humming sound from its beak. The hums fluctuate in tone, seeming to either sense you or communicate with you. Either way, it appears unsatisfied, as it drops low to the ground and begins to charge, the rough, bony tail behind it dragging loudly.")
+  print("Methodic thumping sounds grow in volume as you travel down the dimly lit catacombs. You find yourrself facing a Caghouse, a strage creature not unsimilar from the turtles you'd collect back home. This being, however, is magnitudes larger, and its shell is jet black, indicating it as a youth. As it notices your presence, it drops onto all six legs and lets out a long, low humming sound from its beak. The hums fluctuate in tone, seeming to either sense you or communicate with you. Either way, it appears unsatisfied, as it drops low to the ground and begins to charge, the rough, bony tail behind it dragging loudly.")
 }
 
 if (opp.name === dell.name){
@@ -609,11 +609,11 @@ if (opp.name === wyrm.name){
 }
 
 if (opp.name === skit.name){
-  print("You take a seat, worn out from a long day of hiking through rough tunnels and caverns. The stones around you are adorned with with primitive, offputting markings. You have no idea what the multi-limbed figures are supposed to be depicting, as there is little interaction between the inhabitants of the deep and those on the surface. A flurry of sharp, clacking noises approach rapidly, pulling you from you thoughts. Several figures ambush forward, their many limbs holding ancient, scavenged weapons. Unnatural eyes study you from all angles. Making no sudden movements, you reach down and prepare to draw. These strange creatures are far from peaceful.")
+  print("You take a seat, worn out from a long day of hiking through rough tunnels and caverns. The stones around you are adorned with with primitive, offputting markings. You have no idea what the multi-limbed figures are supposed to be depicting, as there is little interaction between the inhabitants of the deep and those on the surface. A flurry of sharp, clacking noises approach rapidly, pulling you from you thoughts. Several figures ambush forward, their many limbs gripping ancient, scavenged weapons. Unnatural eyes study you from all angles. Making no sudden movements, you reach down and prepare to draw. These strange creatures are far from peaceful.")
 }
 
 if (opp.name === cagh.name){
-  print("")
+  print("A large Caghouse stands guard, blocking your way. Well, she would be blocking your path, if she weren't fast asleep. You ponder your options, you could either try and attack before she awakens, or sneak around silently. You eye your gear, wondering if anything would make too much noise while you move, you unclip a few items and slide them into your pockets, hoping it would help you, but you've taken too long. You look up to see the Caghousian guard lumbering to her feet, orange eyes locked onto you. She mutters something in a tongue you never cared to learn before lowering her head and charging.")
 }
 
       // fight loop
@@ -728,7 +728,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           print(`As swiftly as possible, you chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
           updateStats();
         } else {
-          print("In a moment of horror, you realize you're all out of potions!");
+          print("You reach down, but to your horror your potion bag is utterly empty!");
         }
       }
     } else {
@@ -743,7 +743,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
                 print("Your eyes grow heavy, and your head feels dizzy. An uncomfortable heat builds near your side, and you reach around to feel the source. One of the idols you found is glowing, and the light is getting brighter and brighter. In a brilliant flash, its gone, and you feel your strength fully restored. You make your way to your feet. Time to end this.");
                 updateStats();
               } else {
-                print("You collapse in a heap. Your adventure ends here.");
+                print("Your vision fades, and you slump to the floor. Your adventure ends here");
                 play = false;
                 break;
               }
@@ -879,7 +879,6 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           if(crit === 1) print(`Crit boost: ${critchance[0]} - ${critchance[critchance.length-1]}`);
           print(`Items: ${potion} potions, ${totem} totems, ${idol} idols`);
         }
-        // floor decision
         if(floor === 0){
           floor = 1;
           print("You descend to Floor 1.");
@@ -888,11 +887,9 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           if(des.ok && Number(des.value) === 1){ floor++; print("You descend deeper."); }
           else print("You remain on this floor.");
         }
-      } // end else (victory or other)
+      }
       updateStats();
-    } // end main while
-
-    // game over summary
+    } 
     print("");
     print(`And so ends the tale of ${name}. You slew ${victories} enemies, and gained ${(lvl*10)+xp} experience.`);
     print(`You used ${potion_usage} potions, ${totem_usage} totems, and ${idol_usage} idols.`);
@@ -913,29 +910,21 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
     print("GAME OVER — Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!");
     input.disabled = true;
     send.disabled = true;
-  } // end mainGame
-
-  // small helpers
+  } 
   function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function deepClone(obj){
-    // simple clone for creatures
     return new Creature(obj.name, obj.health, obj.base_strength, obj.defense, obj.xp_value, obj.strength_type, obj.max_health);
   }
-
-  // Wire fallback for invalid input re-prompt: when inputResolve resolves with ok:false, re-open prompt with same valid options
   (async function waiter(){
     while(true){
       if(inputResolve && inputResolve.validOptions){
-        // nothing here - we handle invalid in getInput's consumer
       }
       await new Promise(r => setTimeout(r, 100));
     }
   })();
 
-  // initial instructions
   printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
   print("");
-  // Start the game
   mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
 
 })();
