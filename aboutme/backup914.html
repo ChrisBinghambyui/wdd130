@@ -784,7 +784,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
                 if(weapon.length === 1) {
                     weapon[0] += 1;
                 } else {
-                    weapon.push(weapon[weapon.length-1] + 1);
+                    weapon.push(weapon[weapon.length-1] + 1); // Add higher value to end
                 }
                 print("Max damage increased.");
                 } else if(uc === 2){ 
@@ -792,14 +792,13 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
                 if(weapon.length === 1) {
                     weapon[0] += 1;
                 } else {
-                    weapon.shift();
+                    weapon.shift(); // Remove lowest value from start
                 }
                 print("Min damage increased.");
                 }
               else if(uc === 3){ upg--; if(heal.length === 1) heal[0] += 1; else heal.shift(); print("Min heal increased."); }
               else if(uc === 4){ upg--; if(heal.length === 1) heal[0] += 1; else heal.push(heal[heal.length-1]+1); print("Max heal increased."); }
               else if(uc === 5){ upg--; hp++; currenthp++; print("Max HP increased by 1."); updateStats(); }
-              else if(uc === 7){ print("Exiting upgrade menu."); break; }
               else if(uc === 6){
   print("Unique upgrades available:");
   print(`1) Shield (cost ${cdef}) - Current: ${shield}`);

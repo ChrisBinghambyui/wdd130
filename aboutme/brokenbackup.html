@@ -143,7 +143,7 @@
   Works locally: save as HTML and open in Chrome.
 */
 
-(function(){
+window.addEventListener('DOMContentLoaded', function(){
   // Utilities
   const screen = document.getElementById('screen');
   const input = document.getElementById('cmd');
@@ -258,7 +258,6 @@
   const rng3 = [0,1,2];
   const rng4 = [0,1];
 
-  // enemies
   const coin = new Creature("Cloaked Man", 10000, 0, 0);
 
   const pdummy = new Creature("Practice Dummy", 10, 0, d4(), 15);
@@ -511,11 +510,15 @@
       print("...");
       print("...");
       // print(`Something approaches... ${opp.name} appears from the darkness!`);
+      // print("");
       updateStats();
+
+
+// AROUND HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         // Skip fight for Cloaked Man - go straight to interaction
 if(opp.name === coin.name || opp === coin){
-  print("The suspicious figure lifts a hand, stopping you in your tracks. He is not hostile.");
+  print("A suspicious figure emerges from the inky darkness, stopping you in your tracks. He is not hostile.");
   print("He claims to be a travelling wizard, an adventurer like yourself.");
   print("He is conducting research, and needs blood to complete it.");
   print("If you give some of yours, he will recompense you greatly. Do you accept the offer?");
@@ -532,8 +535,10 @@ if(opp.name === coin.name || opp === coin){
     if(rew2 > 0){ upg += rew2; print(`You gain ${rew2} UPG point(s).`); }
     if(rew3 > 0){ totem += rew3; print(`You find ${rew3} totem(s).`); }
     if(rew4 > 0){ idol += rew4; print(`You find ${rew4} idol(s).`); }
+    floor += 1
   } else { 
-    print("You refuse."); 
+    print("You refuse.");
+    floor += 1 
   }
   updateStats();
   continue; // Skip to next loop iteration
@@ -616,7 +621,6 @@ if (opp.name === cagh.name){
   print("")
 }
 
-      // fight loop
       let flee = null;
       print("")
       let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
@@ -749,10 +753,7 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
               }
             }
           }
-        } // end combat while loop
-      } // end else (chose to fight) // end fight loop
-
-      // post-fight handling
+        }
       if(!play) break;
       if(flee === 2 && opp.health === opp.max_health){
         print("Coward. You gain nothing from this experience.");
@@ -760,7 +761,6 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
       } else if(flee === 2 && opp.health < opp.max_health){
         print("You manage to escape the fight with your life.");
       } else {
-        // victory
         xp += opp.xp_value;
         victories++;
         // level up
@@ -771,12 +771,11 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           print(`You have ${upg} upgrade point(s). Do you want to spend them now?`);
           let cha = await getInput("1) Enhance now  2) Delay");
           if(cha.ok && Number(cha.value) === 1){
-            // upgrade loop
             while(upg > 0){
               print("");
               print("Choose what to upgrade:");
               print("1) Raise max damage     2) Raise min damage     3) Raise min heal     4) Raise max heal");
-              print("5) Increase max HP      6) Unique upgrades     7) Done");
+              print("5) Increase max HP      6) Unique upgrades     7) Exit and Save Upgrade Points for Later");
               let u = await getInput("Choice (1-7):");
               if(!u.ok) break;
               const uc = Number(u.value);
@@ -852,12 +851,11 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
   } else if(cho === 9) {
     print("Back to main upgrades.");
   } else {
-    print("Invalid choice."); }
+    print("Invalid choice.");
   }
-} // end upgrade loop
-          } // end if choose to spend
-        } // end upg > 0
-        // resting heal
+            }
+          }
+        }
         const rest = randomChoice(heal);
         if(rest > 0 && currenthp < hp){
           currenthp = Math.min(currenthp + rest, hp);
@@ -865,7 +863,6 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
         } else if(rest === 0 && currenthp < hp){
           print("You cannot find rest; you heal nothing.");
         }
-        // view stats prompt
         let view = await getInput("View current stats? 1) Yes  2) No");
         if(view.ok && Number(view.value) === 1){
           print("");
@@ -888,11 +885,9 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
           if(des.ok && Number(des.value) === 1){ floor++; print("You descend deeper."); }
           else print("You remain on this floor.");
         }
-      } // end else (victory or other)
+      }
       updateStats();
-    } // end main while
-
-    // game over summary
+    } 
     print("");
     print(`And so ends the tale of ${name}. You slew ${victories} enemies, and gained ${(lvl*10)+xp} experience.`);
     print(`You used ${potion_usage} potions, ${totem_usage} totems, and ${idol_usage} idols.`);
@@ -913,32 +908,24 @@ while(flee !== 2 && opp.health > 0 && currenthp > 0){
     print("GAME OVER — Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!");
     input.disabled = true;
     send.disabled = true;
-  } // end mainGame
-
-  // small helpers
+  }
   function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function deepClone(obj){
-    // simple clone for creatures
     return new Creature(obj.name, obj.health, obj.base_strength, obj.defense, obj.xp_value, obj.strength_type, obj.max_health);
   }
 
-  // Wire fallback for invalid input re-prompt: when inputResolve resolves with ok:false, re-open prompt with same valid options
   (async function waiter(){
     while(true){
       if(inputResolve && inputResolve.validOptions){
-        // nothing here - we handle invalid in getInput's consumer
       }
       await new Promise(r => setTimeout(r, 100));
     }
   })();
 
-  // initial instructions
   printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
   print("");
-  // Start the game
   mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
-
-})();
+}}});
 </script>
 </body>
 </html>
