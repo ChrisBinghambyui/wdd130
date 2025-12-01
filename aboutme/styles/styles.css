@@ -54,3 +54,60 @@ footer {
     width: 80px;
     padding-top: 10px;
 }
+
+.card-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: none; 
+}
+
+.flintlock-card, .main-card, .jousting-card {
+  position: relative;
+}
+
+.flintlock-card a,
+.main-card a,
+.jousting-card a  {
+  position: relative;
+  display: block;
+}
+
+.card-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  transition: .5s ease;
+  background-color: #008CBA;
+  pointer-events: none; 
+}
+
+.flintlock-card:hover .overlay,
+.main-card:hover .overlay,
+.jousting-card:hover .overlay {
+  opacity: 0.95; 
+}
+
+.text {
+  color: white;
+  font-size: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  width: 90%; 
+  padding: 0 20px;
+}

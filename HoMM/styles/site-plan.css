@@ -282,3 +282,51 @@ footer .gif img {
   max-height: 80px;
   width: auto;
 }
+
+/*HISTORY PAGE SECTION STARTS HERE*/
+
+.history-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem;
+}
+
+#history1, #history3, #history5, #history7 {
+    display: contents;
+}
+
+#history1 img, #history3 img, #history5 img, #history7 img {
+    grid-column: 1;
+}
+
+#history1 p, #history3 p, #history5 p, #history7 p {
+    grid-column: 2;
+}
+
+#history2, #history4, #history6, #history8 {
+    display: contents;
+}
+
+#history2 p, #history4 p, #history6 p, #history8 p {
+    grid-column: 1;
+}
+
+#history2 img, #history4 img, #history6 img, #history8 img {
+    grid-column: 2;
+}
+
+.history-content-grid img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Style the paragraphs */
+.history-content-grid p {
+    align-self: center;
+    line-height: 1.6;
+}
