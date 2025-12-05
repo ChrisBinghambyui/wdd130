@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Flintlock Dungeon — Browser Terminal</title>
+<style>
+  :root{
+    --bg:#0d0d0d;
+    --panel:#0b0b0b;
+    --green:#00ff66;
+    --muted:#007a3a;
+    --accent:#39ff9a;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#050505 0%, #0f0f0f 100%);}
+  body{
+    font-family: "Courier New", monospace;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    color:var(--green);
+  }
+
+  .terminal {
+    width:min(1000px, 94vw);
+    max-width:1000px;
+    height:75vh;
+    min-height:540px;
+    background: radial-gradient(ellipse at 20% 10%, rgba(0,255,102,0.02), transparent 30%),
+                linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.2));
+    border: 2px solid rgba(0,255,102,0.08);
+    box-shadow: 0 10px 60px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.02);
+    padding:18px;
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .term-header{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .led { width:12px;height:12px;border-radius:50%; background:#ff5f56; box-shadow:0 0 12px rgba(255,95,86,0.2); }
+  .led.yellow { background:#ffbd2e; box-shadow:0 0 12px rgba(255,189,46,0.1); }
+  .led.green { background:#27c93f; box-shadow:0 0 12px rgba(39,201,63,0.12); }
+  .title { font-weight:bold; margin-left:6px; color:var(--accent); }
+
+  .screen {
+    flex:1;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.2));
+    border-radius:6px;
+    padding:14px;
+    color:var(--green);
+    overflow:auto;
+    box-shadow: inset 0 0 30px rgba(0,255,102,0.01);
+    border: 1px solid rgba(0,255,102,0.03);
+    line-height:1.35;
+    font-size:14px;
+  }
+
+  .screen .line { white-space:pre-wrap; word-wrap:break-word; margin-bottom:6px; }
+
+  .input-row {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  .prompt {
+    min-width:84px;
+    text-align:right;
+    color:var(--muted);
+    font-size:13px;
+    user-select:none;
+  }
+
+  .cmd-input {
+    flex:1;
+    background:transparent;
+    border:1px solid rgba(0,255,102,0.07);
+    color:var(--green);
+    padding:10px 12px;
+    border-radius:6px;
+    outline:none;
+    font-family:inherit;
+    font-size:14px;
+  }
+
+  .btn {
+    background:linear-gradient(180deg, rgba(0,255,102,0.06), rgba(0,255,102,0.02));
+    border:1px solid rgba(0,255,102,0.06);
+    color:var(--green);
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13px;
+  }
+  .btn:active{ transform:translateY(1px); }
+
+  .muted { color: #4f9f6e; font-size:13px; }
+
+  .status {
+    display:flex;
+    gap:10px;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  /* small nice touches */
+  .green-highlight{ color:var(--accent); font-weight:700; }
+  ::-webkit-scrollbar{ height:10px; width:10px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(0,255,102,0.06); border-radius:8px; }
+  .blinker { display:inline-block; width:8px; background:var(--green); margin-left:6px; animation:blink 1s steps(1) infinite; height:14px; vertical-align:middle; }
+  @keyframes blink { 50%{opacity:0} }
+</style>
+</head>
+<body>
+  <div class="terminal" role="application" aria-label="Flintlock Dungeon terminal">
+    <div class="term-header">
+      <div class="led"></div><div class="led yellow"></div><div class="led green"></div>
+      <div class="title">Flintlock Dungeon</div>
+      <div style="flex:1"></div>
+      <div class="status"> <span id="stat-level" class="muted">Level: 0</span> <span id="stat-hp" class="muted">HP: 10/20</span> <span id="stat-floor" class="muted">Floor: 0</span></div>
+    </div>
+
+    <div id="screen" class="screen" tabindex="0" aria-live="polite"></div>
+
+    <div class="input-row">
+      <div class="prompt">INPUT:</div>
+      <input id="cmd" class="cmd-input" autocomplete="off" />
+      <button id="send" class="btn">Enter</button>
+    </div>
+  </div>
+
+<script>
+/*
+  Flintlock Dungeon — browser terminal UI
+  Converted from original PyScript game into event-driven JS.
+  Works locally: save as HTML and open in Chrome.
+*/
+
+(function(){
+  // Utilities
+  const screen = document.getElementById('screen');
+  const input = document.getElementById('cmd');
+  const send = document.getElementById('send');
+  const statLevel = document.getElementById('stat-level');
+  const statHP = document.getElementById('stat-hp');
+  const statFloor = document.getElementById('stat-floor');
+
+  function print(text="", cssClass="line"){
+    const el = document.createElement('div');
+    el.className = cssClass;
+    el.textContent = text;
+    screen.appendChild(el);
+    screen.scrollTop = screen.scrollHeight;
+  }
+
+  function printRich(text, html=false){
+    const el = document.createElement('div');
+    el.className = "line";
+    if(html) el.innerHTML = text; else el.textContent = text;
+    screen.appendChild(el);
+    screen.scrollTop = screen.scrollHeight;
+  }
+
+  function dice(n){ return Math.floor(Math.random()*n) + 1; }
+  function d4(){ return dice(4); }
+  function d6(){ return dice(6); }
+  function d8(){ return dice(8); }
+  function d10(){ return dice(10); }
+  function d12(){ return dice(12); }
+  function d100(){ return dice(100); }
+  function d20(){ return dice(20); }
+  function d40(){ return dice(40); }
+
+  // Promise-based input prompt (validOptions optional)
+  let inputResolve = null;
+  function getInput(promptText="", validOptions=null){
+    printRich("> " + promptText);
+    input.value = "";
+    input.focus();
+    return new Promise((resolve) => {
+      inputResolve = ({resolve, validOptions});
+    });
+  }
+
+  // Handler for Enter key
+  function handleInputSubmit(){
+    if(!inputResolve) return;
+    const raw = input.value.trim();
+    if(raw === "") return;
+    printRich(raw, false);
+    const { resolve, validOptions } = inputResolve;
+    inputResolve = null;
+    // If validOptions specified, validate
+    if(validOptions){
+      const num = Number(raw);
+      if(!Number.isFinite(num) || !validOptions.includes(num)){
+        print("Invalid choice. Expected: " + JSON.stringify(validOptions));
+        // re-prompt: resolve with null so caller can re-prompt
+        resolve({ok:false, raw});
+        return;
+      }
+      resolve({ok:true, value:num});
+    } else {
+      resolve({ok:true, value:raw});
+    }
+  }
+
+  // wire input events
+  send.addEventListener('click', handleInputSubmit);
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') { e.preventDefault(); handleInputSubmit(); }
+  });
+
+  // Data structures (mirrors original)
+  class Creature {
+    constructor(name, health, strength, defense, xp_value=0, strength_type="fixed", max_health=null){
+      this.name = name;
+      this.health = health;
+      this.base_strength = strength;
+      this.defense = defense;
+      this.xp_value = xp_value;
+      this.strength_type = strength_type;
+      this.max_health = max_health !== null ? max_health : health;
+    }
+    getStrength(){
+      if(this.strength_type === "current_health") return this.health;
+      return this.base_strength;
+    }
+  }
+
+  // initial player state
+  let weapon = [1,2,3,4,5,6];
+  let hp = 20;
+  let currenthp = 20;
+  let lvl = 0;
+  let floor = 0;
+  let xp = 0;
+  let upg = 0;
+  let shield = 0;
+  let cdef = 1;
+  let heal = [0,1,2,3];
+  let critchance = [1,2,3,4,5];
+
+  let double = 0, rapid = 0, crit = 0;
+  let totem = 0, idol = 0, potion = 0;
+  let potion_usage = 0, totem_usage = 0, idol_usage = 0, victories = 0;
+
+  const rng = [0,1,2,3];
+  const rng2 = [0,1,2,3,4,5,6];
+  const rng3 = [0,1,2];
+  const rng4 = [0,1];
+
+  // enemies
+  const coin = new Creature("Cloaked Man", 10000, 0, 0);
+
+// name, hp, atk, def, xp
+
+  const pdummy = new Creature("Practice Dummy", 10, 0, d4(), 15);
+  
+  const crat = new Creature("Cave Rat", 3, d4()-1, 0, 2);
+  const wbat = new Creature("Weary Bat", 2, d4()-1, 1, 2);
+  const rock = new Creature("Spooky Rock", 10, 0, 0, 2);
+
+  const vrat = new Creature("Crazed Rats", 4, d8()-2, 0, 3);
+  const mutt = new Creature("Mangy Dog", 6, d6()-1, 0, 3);
+  const ybel = new Creature("Young Beltleech", d4()+d4(), 3, 0, 3);
+
+  const magg = new Creature("Maggot Swarm", 10, 0, -1, 5, "current_health");
+  const ygos = new Creature("Decrepit Ghost", 3, d6()-1, 0, 5);
+  const ycag = new Creature("Young Caghouse", 6, d8(), 2, 5);
+
+  const dell = new Creature("Dellinid Prowler", 10, d6()+d6(), 2, 7);
+  const skel = new Creature("Skeletal Guard", 8, d8()+2, 2, 7);
+  const nauk = new Creature("Naukin Scout", 8, d4()+d4()+d4(), 1, 7);
+
+  const tent = new Creature("Fleshy Protrusion", 15, d8()+d4(), 2, 10);
+  const wyrm = new Creature("Hammerhead Tunneler", 12, d10()+2, 4, 10);
+  const myrm = new Creature("Myrrim Rotguard", 10, d12()+1, 3, 10);
+
+  const pred = new Creature("Predator Wyrm", 20, d8()+d8()+d8(), 2, 15);
+  const skit = new Creature("Skittran Scouts", 17, 0, 5, 15, "current_health");
+  const cagh = new Creature("Roaming Caghouse", 15, 15, 4, 15);
+
+  const enak = new Creature("Naukin Patrol", 30, 0, 2, 20, "current_health");
+  const mysa = new Creature("Rooted Myr", 30, d12()+d12(), d6(), 20);
+  const marr = new Creature("Marrow Golem", 25, d12()+10, 2, 20);
+
+  const skar = new Creature("Skittran Arbalest", 35, 20, 4, 30);
+  const terr = new Creature("Terragan", 40, d10()+d10()+d10()+5, 2, 30);
+  const myrg = new Creature("Myrrim Goliath", 45, d40(), 3, 30);
+
+  const hrt = new Creature("Heart of the Mountain", 60, d20()+d20()+10, 5, 60);
+
+  const tier0 = [coin];
+  const tier1 = [pdummy];
+  const tier2 = [crat, wbat, rock];
+  const tier3 = [vrat, mutt, ybel];
+  const tier4 = [magg, ygos, ycag];
+  const tier5 = [dell, skel, nauk];
+  const tier6 = [tent, wyrm, myrm];
+  const tier7 = [pred, skit, cagh];
+  const tier8 = [enak, mysa, marr];
+  const tier9 = [skar, terr, myrg];
+  const tier10 = [hrt];
+
+  // helper to update top right stats
+  function updateStats(){
+    statLevel.textContent = `Level: ${lvl}`;
+    statHP.textContent = `HP: ${currenthp}/${hp}`;
+    statFloor.textContent = `Floor: ${floor}`;
+  }
+
+  // Main game logic as an async function to use awaits
+  async function mainGame(){
+    print("Welcome to FLINTLOCK DUNGEON (browser edition)!");
+    print("");
+    print("Note: Most inputs in this game are numeric. If you enter something invalid, you'll be prompted again.");
+    print("");
+    updateStats();
+
+    // get name
+    let nameResult = await getInput("What is your character's name?");
+    while(!nameResult.ok){
+      nameResult = await getInput("What is your character's name?");
+    }
+    const name = String(nameResult.value);
+    print(`Welcome to Flintlock Dungeon, ${name}!`);
+    print("");
+    let debug_mode = false;
+    if(name === "devcom"){ debug_mode = true; print("*** DEBUG MODE ACTIVATED ***"); }
+
+    let play = true;
+
+    // main game loop
+    while(play && currenthp > 0){
+      // debug menu
+      if(debug_mode){
+        print("");
+        print("*** DEBUG MENU ***");
+        print("1) Continue normally  2) Edit stats  3) Edit equipment  4) Change floor  5) Choose next enemy");
+        let res = await getInput("Choose an option (or press 1):");
+        if(!res.ok){ continue; }
+        const debug_choice = Number(res.value);
+        if(debug_choice === 2){
+          print("--- Edit Stats ---");
+          let r = await getInput("Max HP (current: " + hp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ hp = Math.max(1, Number(r.value)); }
+          r = await getInput("Current HP (current: " + currenthp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ currenthp = Math.min(hp, Math.max(0, Number(r.value))); }
+          r = await getInput("Level (current: " + lvl + "):");
+          if(r.ok && !isNaN(Number(r.value))){ lvl = Math.max(0, Number(r.value)); }
+          r = await getInput("XP (current: " + xp + "):");
+          if(r.ok && !isNaN(Number(r.value))){ xp = Math.max(0, Number(r.value)); }
+          r = await getInput("Upgrade points (current: " + upg + "):");
+          if(r.ok && !isNaN(Number(r.value))){ upg = Math.max(0, Number(r.value)); }
+          r = await getInput("Shield/Defense (current: " + shield + "):");
+          if(r.ok && !isNaN(Number(r.value))){ shield = Math.max(0, Number(r.value)); cdef = shield + 1; }
+          print("Stats updated!");
+        } else if(debug_choice === 3){
+          print("--- Edit Equipment ---");
+          let r = await getInput("Potions (current: " + potion + "):");
+          if(r.ok && !isNaN(Number(r.value))){ potion = Math.max(0, Number(r.value)); }
+          r = await getInput("Totems (current: " + totem + "):");
+          if(r.ok && !isNaN(Number(r.value))){ totem = Math.max(0, Number(r.value)); }
+          r = await getInput("Idols (current: " + idol + "):");
+          if(r.ok && !isNaN(Number(r.value))){ idol = Math.max(0, Number(r.value)); }
+          r = await getInput("Dual Wield (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ double = Number(r.value) ? 1:0; }
+          r = await getInput("Rapid Reload (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ rapid = Number(r.value) ? 1:0; }
+          r = await getInput("Critical Hits (0=no,1=yes):");
+          if(r.ok && !isNaN(Number(r.value))){ crit = Number(r.value) ? 1:0; }
+          print("Equipment updated!");
+        } else if(debug_choice === 4){
+          let r = await getInput("Floor (current: " + floor + "):");
+          if(r.ok && !isNaN(Number(r.value))){ floor = Math.max(0, Number(r.value)); }
+          print("Floor set to " + floor);
+        } else if(debug_choice === 5){
+  print("--- Choose Enemy ---");
+  print("Tier 0-1:");
+  print("0) Cloaked Man  1) Practice Dummy");
+  print("Tier 2:");
+  print("2) Cave Rat  3) Weary Bat  4) Spooky Rock");
+  print("Tier 3:");
+  print("5) Crazed Rats  6) Mangy Dog  7) Young Beltleech");
+  print("Tier 4:");
+  print("8) Maggot Swarm  9) Decrepit Ghost  10) Young Caghouse");
+  print("Tier 5:");
+  print("11) Dellinid Prowler  12) Skeletal Guard  13) Naukin Scout");
+  print("Tier 6:");
+  print("14) Fleshy Protrusion  15) Hammerhead Tunneler  16) Myrrim Rotguard");
+  print("Tier 7:");
+  print("17) Predator Wyrm  18) Skittran Scouts  19) Roaming Caghouse");
+  print("Tier 8:");
+  print("20) Naukin Patrol  21) Rooted Myr  22) Marrow Golem");
+  print("Tier 9:");
+  print("23) Skittran Arbalest  24) Terragan  25) Myrrim Goliath");
+  print("Tier 10:");
+  print("26) Heart of the Mountain");
+  
+  let r = await getInput("Choose enemy (0-26):");
+  if(r.ok && !isNaN(Number(r.value))){
+    const idx = Number(r.value);
+    const all = [
+      coin, pdummy,              // 0-1
+      crat, wbat, rock,          // 2-4
+      vrat, mutt, ybel,          // 5-7
+      magg, ygos, ycag,          // 8-10
+      dell, skel, nauk,          // 11-13
+      tent, wyrm, myrm,          // 14-16
+      pred, skit, cagh,          // 17-19
+      enak, mysa, marr,          // 20-22
+      skar, terr, myrg,          // 23-25
+      hrt                        // 26
+    ];
+    if(idx>=0 && idx<all.length){
+      window._debug_next_enemy = all[idx];
+      print("Next encounter set to: " + all[idx].name);
+    }
+  }
+} else {
+          // continue normally
+        }
+      }
+
+      // main choice: descend or quit
+      print("");
+      print("Will you DESCEND into the dungeon? Or QUIT now?");
+      print("1) Descend    2) Quit");
+      let choice = await getInput("Choose 1 or 2:");
+      if(!choice.ok) continue;
+      if(Number(choice.value) === 2){ print("You quit. Farewell."); break; }
+
+      // pick enemy
+        let enemyPool;
+        if(window._debug_next_enemy){ 
+        enemyPool = [window._debug_next_enemy]; 
+        window._debug_next_enemy = null; 
+        }
+        else {
+        if(floor === 0) {
+            enemyPool = tier1; // Practice dummy
+        }
+        else if(floor % 10 === 0) {
+            enemyPool = tier0; // Special encounter every 10 floors
+        }
+        else if(floor >= 1 && floor <= 5) {
+            enemyPool = tier2; // Floors 1-5: tier 2 only
+        }
+        else if(floor >= 6 && floor <= 9) {
+            enemyPool = tier2.concat(tier3); // Floors 6-9: tier 2 & 3
+        }
+        else if(floor >= 11 && floor <= 15) {
+            enemyPool = tier2.concat(tier3); // Floors 11-15: tier 2 & 3
+        }
+        else if(floor >= 16 && floor <= 19) {
+            enemyPool = tier3.concat(tier4); // Floors 16-19: tier 3 & 4
+        }
+        else if(floor >= 21 && floor <= 25) {
+            enemyPool = tier3.concat(tier4); // Floors 21-25: tier 3 & 4
+        }
+        else if(floor >= 26 && floor <= 29) {
+            enemyPool = tier4.concat(tier5); // Floors 26-29: tier 4 & 5
+        }
+        else if(floor >= 31 && floor <= 35) {
+            enemyPool = tier4.concat(tier5); // Floors 31-35: tier 4 & 5
+        }
+        else if(floor >= 36 && floor <= 39) {
+            enemyPool = tier5.concat(tier6); // Floors 36-39: tier 5 & 6
+        }
+        else if(floor >= 41 && floor <= 45) {
+            enemyPool = tier5.concat(tier6); // Floors 41-45: tier 5 & 6
+        }
+        else if(floor >= 46 && floor <= 49) {
+            enemyPool = tier6.concat(tier7); // Floors 46-49: tier 6 & 7
+        }
+        else if(floor >= 51 && floor <= 55) {
+            enemyPool = tier6.concat(tier7); // Floors 51-55: tier 6 & 7
+        }
+        else if(floor >= 56 && floor <= 59) {
+            enemyPool = tier7.concat(tier8); // Floors 56-59: tier 7 & 8
+        }
+        else if(floor >= 61 && floor <= 65) {
+            enemyPool = tier7.concat(tier8); // Floors 61-65: tier 7 & 8
+        }
+        else if(floor >= 66 && floor <= 69) {
+            enemyPool = tier8.concat(tier9); // Floors 66-69: tier 8 & 9
+        }
+        else if(floor >= 71 && floor <= 75) {
+            enemyPool = tier8.concat(tier9); // Floors 71-75: tier 8 & 9
+        }
+        else if(floor >= 76 && floor <= 80) {
+            enemyPool = tier9; // Floors 76-80: tier 9 only (5 floors)
+        }
+        else if(floor >= 81) {
+            enemyPool = tier10; // Floor 81+: final boss tier
+        }
+        }
+
+      const opp = deepClone(randomChoice(enemyPool));
+      opp.health = opp.max_health;
+      let round = 0;
+      print("");
+      print("A strange force draws you deeper into the dungeon...");
+      print("...");
+      print("...");
+      print(`Something approaches... ${opp.name} appears from the darkness!`);
+      updateStats();
+
+        // Skip fight for Cloaked Man - go straight to interaction
+if(opp.name === coin.name || opp === coin){
+  print("The suspicious figure lifts a hand, stopping you in your tracks. He is not hostile.");
+  print("He claims to be a travelling wizard, an adventurer like yourself.");
+  print("He is conducting research, and needs blood to complete it.");
+  print("If you give some of yours, he will recompense you greatly. Do you accept the offer?");
+  let sacRes = await getInput("1) Give blood   2) Refuse");
+  if(sacRes.ok && Number(sacRes.value) === 1){
+    print("You allow him to draw blood...");
+    hp -= 5;
+    if(currenthp > hp) currenthp = hp;
+    const rew1 = randomChoice(rng);
+    const rew2 = randomChoice(rng2);
+    const rew3 = randomChoice(rng3);
+    const rew4 = randomChoice(rng4);
+    if(rew1 > 0){ potion += rew1; print(`You find ${rew1} vial(s).`); }
+    if(rew2 > 0){ upg += rew2; print(`You gain ${rew2} UPG point(s).`); }
+    if(rew3 > 0){ totem += rew3; print(`You find ${rew3} totem(s).`); }
+    if(rew4 > 0){ idol += rew4; print(`You find ${rew4} idol(s).`); }
+  } else { 
+    print("You refuse."); 
+  }
+  updateStats();
+  continue; // Skip to next loop iteration
+}
+
+      // fight loop
+      let flee = null;
+      
+      // Initial fight or flee choice
+      let fchoice = await getInput("What do you do? 1) FIGHT  2) FLEE");
+      if(!fchoice.ok) { 
+        updateStats();
+        continue; 
+      }
+      if(Number(fchoice.value) === 2){ 
+        flee = 2; 
+      } else {
+        // Combat loop - only runs if player chose to fight
+        while(flee !== 2 && opp.health > 0 && currenthp > 0){
+          round++;
+          if(round % 2 === 0 && rapid === 0){
+            print("You hurriedly begin reloading and preparing to shoot again.");
+          } else {
+            let dam = 0;
+            if(double === 0){
+              print("You take aim and fire off a shot!");
+              dam = randomChoice(weapon);
+              if(crit === 1){
+                let chance = randomChoice(critchance) + d100();
+                if(chance >= 100) dam = weapon[weapon.length-1];
+              }
+              if(dam <= 0) print("Your shot goes wide, dealing no damage.");
+              else {
+                if(dam > 0) print(`You do ${dam} damage.`);
+                opp.health -= dam;
+              }
+            } else {
+              print("You raise your pistols and fire.");
+              let dam1 = randomChoice(weapon);
+              let dam2 = randomChoice(weapon);
+              if(crit === 1){
+                let c1 = randomChoice(critchance) + d100();
+                if(c1 >= 100) dam1 = weapon[weapon.length-1];
+                let c2 = randomChoice(critchance) + d100();
+                if(c2 >= 100) dam2 = weapon[weapon.length-1];
+              }
+              const tot = dam1 + dam2;
+              if(tot <= 0) print("Your shots go wide, dealing no damage.");
+              else { print(`You do ${tot} damage.`); opp.health -= tot; }
+            }
+          }
+
+          if(opp.health <= 0){
+            print(`The ${opp.name} collapses to the ground, defeated. You are victorious!`);
+            break;
+          } else {
+            print("Your enemy takes a swing...");
+            let edam = opp.getStrength();
+            if(opp.name === "Young Beltleech") edam = (round+3);
+            if(edam < 0) edam = 0;
+            print(`You take ${edam} damage!`);
+            currenthp -= edam;
+            if(currenthp < 0) currenthp = 0;
+            
+            // HP recovery for specific enemies
+            if((opp.name === "Young Beltleech" || opp.name === "Rooted Myr" || opp.name === "Heart of the Mountain") && (opp.health>0)){
+              const recovered = Math.floor(edam / 2);
+              if(recovered > 0){
+                opp.health = Math.min(opp.health + recovered, opp.max_health);
+                print(`The ${opp.name} recovers ${recovered} HP from its attack!`);
+              }
+            }
+            
+            updateStats();
+            if(currenthp > 0){
+              // continue, flee, or potion
+              let r = await getInput("1) Continue the fight  2) Flee  3) Use a Potion");
+              if(!r.ok) continue;
+              const v = Number(r.value);
+              if(v === 2){ 
+                flee = 2; 
+                break; 
+              }
+              else if(v === 3){
+                if(potion > 0){
+                  potion -= 1;
+                  potion_usage += 1;
+                  const healAmt = Math.floor((hp + 3) / 4);
+                  currenthp = Math.min(currenthp + healAmt, hp);
+                  print(`As swiftly as possible, you chug a potion and recover ${healAmt} HP. Current HP: ${currenthp}. Potions left: ${potion}`);
+                  updateStats();
+                  // continue fight (loop continues)
+                } else {
+                  print("In a moment of horror, you realize you're all out of potions!");
+                  // continue fight (loop continues)
+                }
+              }
+              // if v === 1, just continue the loop naturally
+            } else {
+              // player dropped to 0 or less
+              print("You feel yourself grow weak and collapse to your knees, bleeding.");
+              if(totem > 0){
+                totem -= 1; totem_usage += 1; currenthp = 1; 
+                print("You used a totem and are revived to 1 HP. Fight on!");
+                updateStats();
+                // continue fighting
+              } else if(idol > 0){
+                idol -= 1; idol_usage += 1; currenthp = hp; 
+                print("You used an idol and are fully restored to max HP!");
+                updateStats();
+                // continue fighting
+              } else {
+                print("You collapse in a heap. Your adventure ends here.");
+                play = false;
+                break;
+              }
+            }
+          }
+        } // end combat while loop
+      } // end else (chose to fight) // end fight loop
+
+      // post-fight handling
+      if(!play) break;
+      if(flee === 2 && opp.health === opp.max_health){
+        print("Coward. You gain nothing from this experience.");
+        if(floor > 1) floor = 1;
+      } else if(flee === 2 && opp.health < opp.max_health){
+        print("You manage to escape the fight with your life.");
+    //   } else if(opp === coin || opp.name === coin.name){
+    //     // Cloaked Man special
+    //     print("The suspicious figure is not hostile. He offers to draw blood for a reward.");
+    //     let sacRes = await getInput("1) Give blood   2) Refuse");
+    //     if(sacRes.ok && Number(sacRes.value) === 1){
+    //       print("You allow him to draw blood...");
+    //       hp -= 5;
+    //       if(currenthp > hp) currenthp = hp;
+    //       const rew1 = randomChoice(rng);
+    //       const rew2 = randomChoice(rng2);
+    //       const rew3 = randomChoice(rng3);
+    //       const rew4 = randomChoice(rng4);
+    //       if(rew1 > 0){ potion += rew1; print(`You find ${rew1} vial(s).`); }
+    //       if(rew2 > 0){ upg += rew2; print(`You gain ${rew2} UPG point(s).`); }
+    //       if(rew3 > 0){ totem += rew3; print(`You find ${rew3} totem(s).`); }
+    //       if(rew4 > 0){ idol += rew4; print(`You find ${rew4} idol(s).`); }
+    //     } else { print("You refuse."); }
+      } else {
+        // victory
+        xp += opp.xp_value;
+        victories++;
+        // level up
+        while(xp >= 10){
+          xp -= 10; lvl++; upg++;
+        }
+        if(upg > 0){
+          print(`You have ${upg} upgrade point(s). Do you want to spend them now?`);
+          let cha = await getInput("1) Enhance now  2) Delay");
+          if(cha.ok && Number(cha.value) === 1){
+            // upgrade loop
+            while(upg > 0){
+              print("");
+              print("Choose what to upgrade:");
+              print("1) Raise max damage     2) Raise min damage     3) Raise min heal     4) Raise max heal");
+              print("5) Increase max HP      6) Unique upgrades     7) Done");
+              let u = await getInput("Choice (1-7):");
+              if(!u.ok) break;
+              const uc = Number(u.value);
+              if(uc === 1){upg--; 
+                if(weapon.length === 1) {
+                    weapon[0] += 1;
+                } else {
+                    weapon.push(weapon[weapon.length-1] + 1); // Add higher value to end
+                }
+                print("Max damage increased.");
+                } else if(uc === 2){ 
+                upg--; 
+                if(weapon.length === 1) {
+                    weapon[0] += 1;
+                } else {
+                    weapon.shift(); // Remove lowest value from start
+                }
+                print("Min damage increased.");
+                }
+              else if(uc === 3){ upg--; if(heal.length === 1) heal[0] += 1; else heal.shift(); print("Min heal increased."); }
+              else if(uc === 4){ upg--; if(heal.length === 1) heal[0] += 1; else heal.push(heal[heal.length-1]+1); print("Max heal increased."); }
+              else if(uc === 5){ upg--; hp++; currenthp++; print("Max HP increased by 1."); updateStats(); }
+              else if(uc === 6){
+  print("Unique upgrades available:");
+  print(`1) Shield (cost ${cdef}) - Current: ${shield}`);
+  print(`2) Potion (cost 3) - Current: ${potion}`);
+  print(`3) Totem (cost 4) - Current: ${totem}`);
+  print(`4) Idol (cost 7) - Current: ${idol}`);
+  if(double===0) print("5) Dual Wield (cost 5)");
+  if(rapid===0) print("6) Rapid Reload (cost 5)");
+  if(crit===0) print("7) Critical Hits (cost 5)");
+  else if(crit===1) {
+    print("7) Raise max critical chance (cost 2)");
+    print("8) Raise min critical chance (cost 2)");
+  }
+  print("9) Back");
+  
+  let v = await getInput("Choose:");
+  if(!v.ok) continue;
+  const cho = Number(v.value);
+  if(cho === 1){
+    if(upg < cdef){ print("Not enough points."); }
+    else { upg -= cdef; cdef++; shield++; print("Shield increased."); }
+  } else if(cho === 2){
+    if(upg < 3) print("Not enough points."); else { upg -= 3; potion++; print("You brewed a potion."); }
+  } else if(cho === 3){
+    if(upg < 4) print("Not enough points."); else { upg -=4; totem++; print("You crafted a totem."); }
+  } else if(cho === 4){
+    if(upg < 7) print("Not enough points."); else { upg -=7; idol++; print("You polished an idol."); }
+  } else if(cho === 5 && double === 0){
+    if(upg < 5) print("Not enough points."); else { upg -=5; double = 1; print("Dual wield acquired."); }
+  } else if(cho === 6 && rapid === 0){
+    if(upg < 5) print("Not enough points."); else { upg -=5; rapid = 1; print("Rapid reload learned."); }
+  } else if(cho === 7 && crit === 0){
+    if(upg < 5) print("Not enough points."); else { upg -=5; crit = 1; print("Critical hits unlocked."); }
+  } else if(cho === 7 && crit === 1){
+    if(upg < 2) print("Not enough points."); 
+    else { 
+      upg -= 2; 
+      if(critchance.length === 1) critchance[0] += 1;
+      else critchance.pop();
+      print("Max critical chance increased."); 
+    }
+  } else if(cho === 8 && crit === 1){
+    if(upg < 2) print("Not enough points."); 
+    else { 
+      upg -= 2; 
+      if(critchance.length === 1) critchance[0] += 1;
+      else critchance.push(critchance[critchance.length-1] + 1);
+      print("Min critical chance increased."); 
+    }
+  } else if(cho === 9) {
+    print("Back to main upgrades.");
+  } else {
+    print("Invalid choice."); }
+  }
+} // end upgrade loop
+          } // end if choose to spend
+        } // end upg > 0
+        // resting heal
+        const rest = randomChoice(heal);
+        if(rest > 0 && currenthp < hp){
+          currenthp = Math.min(currenthp + rest, hp);
+          print(`You rest and heal ${rest} HP.`);
+        } else if(rest === 0 && currenthp < hp){
+          print("You cannot find rest; you heal nothing.");
+        }
+        // view stats prompt
+        let view = await getInput("View current stats? 1) Yes  2) No");
+        if(view.ok && Number(view.value) === 1){
+          print("");
+          print("*** STATS ***");
+          print(`Damage: ${weapon[0]} - ${weapon[weapon.length-1]}`);
+          print(`Max HP: ${hp}    Current HP: ${currenthp}`);
+          print(`Level: ${lvl}    Floor: ${floor}`);
+          print(`Lifetime XP: ${(lvl*10) + xp}    XP to Next Level: ${10 - xp}`);
+          print(`Defense: ${shield}    Unused UPG points: ${upg}`);
+          print(`Heal on Rest: ${heal[0]} - ${heal[heal.length-1]}`);
+          if(crit === 1) print(`Crit boost: ${critchance[0]} - ${critchance[critchance.length-1]}`);
+          print(`Items: ${potion} potions, ${totem} totems, ${idol} idols`);
+        }
+        // floor decision
+        if(floor === 0){
+          floor = 1;
+          print("You descend to Floor 1.");
+        } else {
+          let des = await getInput(`Descend further? 1) Yes  2) Stay on floor ${floor}`);
+          if(des.ok && Number(des.value) === 1){ floor++; print("You descend deeper."); }
+          else print("You remain on this floor.");
+        }
+      } // end else (victory or other)
+      updateStats();
+    } // end main while
+
+    // game over summary
+    print("");
+    print(`And so ends the tale of ${name}. You slew ${victories} enemies, and gained ${(lvl*10)+xp} experience.`);
+    print(`You used ${potion_usage} potions, ${totem_usage} totems, and ${idol_usage} idols.`);
+    let final = await getInput("See final stats? 1) Yes  2) No");
+    if(final.ok && Number(final.value) === 1){
+      print("");
+      print("*** FINAL STATS ***");
+      print(`Damage: ${weapon[0]} - ${weapon[weapon.length-1]}`);
+      print(`Max HP: ${hp}    Current HP: ${currenthp}`);
+      print(`Level: ${lvl}    Floor: ${floor}`);
+      print(`Lifetime XP: ${(lvl*10)+xp}`);
+      print(`Defense: ${shield}    Unused UPG points: ${upg}`);
+      print(`Heal on Rest: ${heal[0]} - ${heal[heal.length-1]}`);
+      if(crit === 1) print(`Crit boost: ${critchance[0]} - ${critchance[critchance.length-1]}`);
+      print(`Items: ${potion} potions, ${totem} totems, ${idol} idols`);
+    }
+    print("");
+    print("GAME OVER — Hopefully next time you have better luck in the FLINTLOCK DUNGEON!!!");
+    input.disabled = true;
+    send.disabled = true;
+  } // end mainGame
+
+  // small helpers
+  function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function deepClone(obj){
+    // simple clone for creatures
+    return new Creature(obj.name, obj.health, obj.base_strength, obj.defense, obj.xp_value, obj.strength_type, obj.max_health);
+  }
+
+  // Wire fallback for invalid input re-prompt: when inputResolve resolves with ok:false, re-open prompt with same valid options
+  (async function waiter(){
+    while(true){
+      if(inputResolve && inputResolve.validOptions){
+        // nothing here - we handle invalid in getInput's consumer
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+  })();
+
+  // initial instructions
+  printRich("Type your responses in the INPUT box and press Enter. For choices, enter the number for the option you want.", false);
+  print("");
+  // Start the game
+  mainGame().catch(err => { print("A fatal error occurred: " + err); console.error(err); });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+/* if you are using any Google fonts change the font names below to your fonts. 
+Any spaces in your font name should be replaced with a +. 
+Fonts are separated by a | */
+@import url('https://fonts.googleapis.com/css2?family=Felipa&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+
+:root {
+  /* change the values below to your colors from your palette */
+  --primary-color: #6D6263   ;
+  --secondary-color: #FF8F09 ;
+  --accent1-color: #40FEF9;
+  --accent2-color: #FDFFE3;
+
+  /* change the values below to your chosen font(s) */
+  --heading-font: "Felipa";
+  --paragraph-font: "Red Hat Text", Helvetica, sans-serif;
+
+  /* these colors below should be chosen from among your palette colors above */
+  --headline-color-on-white: #FF8F09;  /* headlines on a white background */ 
+  --headline-color-on-color: #40FEF9; /* headlines on a colored background */ 
+  --paragraph-color-on-white: #6D6263; /* paragraph text on a white background */ 
+  --paragraph-color-on-color: #FDFFE3; /* paragraph text on a colored background */ 
+  --paragraph-background-color: #6D6263  ;
+  --nav-link-color: #6D6263;
+  --nav-background-color: #FF8F09;
+  --nav-hover-link-color: #FDFFE3;
+  --nav-hover-background-color: #6D6263;
+}
+
+
+/*  Look around below...but DON'T CHANGE ANYTHING! */
+
+body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4em;
+  font-size: 18px;
+  text-align: center;
+  background-color: var(--accent2-color);
+}
+img {
+  display: block;
+  margin: 0 auto;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font);
+  color: var(--headline-color-on-white);
+}
+h2 {
+  text-align: center;
+}
+hr {
+  height: 3px;
+  margin: 35px 0;
+  background: var(--accent1-color);
+}
+header {
+  padding: 1em;
+  text-align: center;
+  color: var(--headline-color-on-color);
+  background-color: var(--paragraph-background-color);
+}
+header > h1, header > h2 {
+  color: var(--headline-color-on-color);
+}
+
+p {
+  font-family: var(--paragraph-font);
+  color: var(--paragraph-color-on-white);
+  padding: 1em;
+}
+.colors {
+  width: 100%;
+  min-width: 350px;
+  margin: 30px auto;
+  text-align: center;
+}
+.colors th {
+  background-color: #999;
+}
+.colors td{
+  width: 25%;
+  height: 3em;
+}
+
+.primary {
+  background-color: var(--primary-color);
+}
+.secondary {
+  background-color: var(--secondary-color);
+}
+.accent1 {
+  background-color: var(--accent1-color);
+}
+.accent2{
+  background-color: var(--accent2-color);
+}
+
+p.colored {
+  background-color: var(--paragraph-background-color);
+  color: var(--paragraph-color-on-color);
+}
+
+nav {
+  background-color: var(--nav-background-color);
+  line-height: 3em;
+  text-align: center;
+  font-size: 1.2em;
+}
+nav  {
+  list-style-type: none;
+  display: flex;
+
+}
+nav a {
+  padding:1em;
+  min-width: 120px;
+  text-decoration: none;
+  padding: 10px;
+
+}
+nav a:link, nav a:visited {
+  color: var(--nav-link-color);
+}
+nav a:hover {
+  color: var(--nav-hover-link-color);
+  background-color: var(--nav-hover-background-color);
+}
+
+.sitemap {
+  display: grid;
+  justify-content: center;
+
+  grid-template-columns: repeat(6, 15%);
+  grid-template-rows: 3em 1.5em 1.5em 3em;
+  grid-template-areas: ". . home home . ."
+    ". . . top . ."
+    ". left left right right ."
+    "page2 page2 . . page3 page3";
+}
+.sitemap > div {
+
+  text-align: center;
+
+}
+.sm-home {
+  grid-area: home;
+  background-color: #ccc;
+  line-height: 3em;
+}
+.sm-page2 {
+  grid-area: page2;
+  background-color: #ccc;
+  line-height: 3em;
+}
+.sm-page3 {
+  grid-area: page3;
+  background-color: #ccc;
+  line-height: 3em;
+}
+
+.top {
+  grid-area: top;
+  border-left: 1px solid;
+}
+
+.left {
+  grid-area: left;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.right {
+  grid-area: right;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+
+#content {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr; 
+  gap: 20px;
+  align-items: start;
+}
+
+header {
+  grid-column: 1 / -1; 
+  grid-row: 1 / 2;
+}
+
+.sidebar {
+  display: contents; 
+}
+
+#angel {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  justify-self: center;
+  margin: 0;
+  max-width: 100%;
+  /* background-color: var(--nav-link-color); */
+}
+
+#devil {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+  justify-self: center;
+  margin: 0;
+  max-width: 100%;
+  /* background-color: var(--headline-color-on-color); */
+}
+
+#hero {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  
+}
+
+#hero-box {
+  grid-column: 1 / -1;
+  grid-row: 3 / 4;
+  width: 100%;
+}
+
+#hero-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.home-grid {
+  grid-column: 1 / -1;
+  grid-row: 4 / 5;
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  gap: 20px;
+}
+
+.history {
+  grid-column: 1 / 2;
+}
+
+.intro-text {
+  grid-column: 2 / 3;
+}
+
+.music {
+  grid-column: 3 / 4;
+}
+
+footer {
+  grid-column: 1 / -1;
+  grid-row: 5 / 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2em;
+  gap: 20px;
+  background-color: var(--paragraph-background-color);
+}
+
+footer p {
+  margin: 0;
+  padding: 0.5em;
+  color: var(--paragraph-color-on-color);
+}
+
+footer a {
+  color: var(--paragraph-color-on-color);
+}
+
+footer a:hover {
+  color: var(--nav-hover-link-color);
+}
+
+footer .gif {
+  display: flex;
+  align-items: center;
+}
+
+footer .gif img {
+  max-height: 80px;
+  width: auto;
+}
+
+/*HISTORY PAGE SECTION STARTS HERE*/
+
+.history-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem;
+}
+
+#history1, #history3, #history5, #history7 {
+    display: contents;
+}
+
+#history1 img, #history3 img, #history5 img, #history7 img {
+    grid-column: 1;
+}
+
+#history1 p, #history3 p, #history5 p, #history7 p {
+    grid-column: 2;
+}
+
+#history2, #history4, #history6, #history8 {
+    display: contents;
+}
+
+#history2 p, #history4 p, #history6 p, #history8 p {
+    grid-column: 1;
+}
+
+#history2 img, #history4 img, #history6 img, #history8 img {
+    grid-column: 2;
+}
+
+.history-content-grid img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Style the paragraphs */
+.history-content-grid p {
+    align-self: center;
+    line-height: 1.6;
+}

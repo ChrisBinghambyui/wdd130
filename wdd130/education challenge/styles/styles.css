@@ -1,0 +1,15 @@
+body {
+  margin: 0 auto;
+  padding: 4em;
+  font-size: 18px;
+  text-align: right;
+  color: black;
+  background-image: url(images/title.jpg);
+}
+
+img {
+  display: block;
+  margin: 0 auto;
+  max-width: 200px;
+}
+
