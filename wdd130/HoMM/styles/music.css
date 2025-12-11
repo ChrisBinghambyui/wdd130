@@ -175,79 +175,6 @@ nav a:hover {
   border-right: 1px solid;
 }
 
-
-#content {
-  display: grid;
-  grid-template-columns: 1fr 3fr 1fr; 
-  gap: 20px;
-  align-items: start;
-}
-
-header {
-  grid-column: 1 / -1; 
-  grid-row: 1 / 2;
-}
-
-.sidebar {
-  display: contents; 
-}
-
-#angel {
-  grid-column: 1 / 2;
-  grid-row: 2 / 3;
-  justify-self: center;
-  margin: 0;
-  max-width: 100%;
-  /* background-color: var(--nav-link-color); */
-}
-
-#devil {
-  grid-column: 3 / 4;
-  grid-row: 2 / 3;
-  justify-self: center;
-  margin: 0;
-  max-width: 100%;
-  /* background-color: var(--headline-color-on-color); */
-}
-
-#hero {
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
-  
-}
-
-#hero-box {
-  grid-column: 1 / -1;
-  grid-row: 3 / 4;
-  width: 100%;
-}
-
-#hero-img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.home-grid {
-  grid-column: 1 / -1;
-  grid-row: 4 / 5;
-  display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
-  gap: 20px;
-}
-
-.history {
-  grid-column: 1 / 2;
-}
-
-.intro-text {
-  grid-column: 2 / 3;
-}
-
-.music {
-  grid-column: 3 / 4;
-}
-
 footer {
   grid-column: 1 / -1;
   grid-row: 5 / 6;
@@ -283,49 +210,59 @@ footer .gif img {
   width: auto;
 }
 
-/*HISTORY PAGE SECTION STARTS HERE*/
 
-.history-content-grid {
+
+.music-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 4rem;
-}
-
-#history1, #history3, #history5, #history7 {
-    display: contents;
-}
-
-#history1 img, #history3 img, #history5 img, #history7 img {
-    grid-column: 1;
-}
-
-#history1 p, #history3 p, #history5 p, #history7 p {
-    grid-column: 2;
-}
-
-#history2, #history4, #history6, #history8 {
-    display: contents;
-}
-
-#history2 p, #history4 p, #history6 p, #history8 p {
-    grid-column: 1;
-}
-
-#history2 img, #history4 img, #history6 img, #history8 img {
-    grid-column: 2;
-}
-
-.history-content-grid img {
+    grid-template-rows: auto auto;
+    gap: 3rem;
     width: 100%;
+    padding: 2rem 0;
+}
+
+.music-pics {
+    display: grid;
+    grid-template-columns: 1fr 300px 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+#romero1, #orchestra {
+    width: 100%;
+    max-width: 400px;
     height: auto;
-    object-fit: cover;
     border-radius: 8px;
 }
 
-.history-content-grid p {
-    align-self: center;
-    line-height: 1.6;
+#romero1 {
+    justify-self: end;
+}
+
+#orchestra {
+    justify-self: start;
+}
+
+#horn {
+    width: 100%;
+    /* max-width: 250px; */
+    height: auto;
+    justify-self: center;
+    border-radius: 8px;
+}
+
+.music-content {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 3rem;
+}
+
+.music-content p {
+    text-align: left;
+    line-height: 1.8;
+}
+
+#romero2 {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
 }
